@@ -1,0 +1,15 @@
+build/
+classes/
+target/
+.DS_Store
+.idea/
+.jar
+*.iml
+gradle/wrapper/
+.gradle
+out/
+log/*
+*/log/
+*/target
+mods/
+target/

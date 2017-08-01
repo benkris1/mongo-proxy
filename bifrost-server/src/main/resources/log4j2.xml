@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+  <Appenders>
+
+    <RollingFile name="RollingFile" fileName="log/scylla.log" filePattern="log/scylla.%i">
+      <PatternLayout pattern="[%d{YYYY:MM:DD HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+      <DefaultRolloverStrategy max="16"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+      </Policies>
+    </RollingFile>
+
+    <RollingFile name="RollingJsonFile" fileName="log/json/scylla-json.log" filePattern="log/json/scylla-json.%i">
+      <MaxLeapJsonLayout/>
+      <DefaultRolloverStrategy max="2"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="50 MB"/>
+      </Policies>
+    </RollingFile>
+
+  </Appenders>
+
+
+  <Loggers>
+    <Root level="INFO">
+      <AppenderRef ref="RollingFile"/>
+      <AppenderRef ref="RollingJsonFile"/>
+    </Root>
+  </Loggers>
+</Configuration>
