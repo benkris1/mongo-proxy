@@ -2,7 +2,7 @@
 <Configuration status="INFO">
   <Appenders>
 
-    <RollingFile name="RollingFile" fileName="log/scylla.log" filePattern="log/scylla.%i">
+    <RollingFile name="RollingFile" fileName="log/bifrost.log" filePattern="log/bifrost.%i">
       <PatternLayout pattern="[%d{YYYY:MM:DD HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
       <DefaultRolloverStrategy max="16"/>
       <Policies>
@@ -10,7 +10,7 @@
       </Policies>
     </RollingFile>
 
-    <RollingFile name="RollingJsonFile" fileName="log/json/scylla-json.log" filePattern="log/json/scylla-json.%i">
+    <RollingFile name="RollingJsonFile" fileName="log/json/bifrost-json.log" filePattern="log/json/bifrost-json.%i">
       <MaxLeapJsonLayout/>
       <DefaultRolloverStrategy max="2"/>
       <Policies>

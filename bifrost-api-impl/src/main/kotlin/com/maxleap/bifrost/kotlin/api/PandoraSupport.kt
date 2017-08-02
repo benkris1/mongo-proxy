@@ -1,4 +1,4 @@
-package com.maxleap.bifrost.kotlin.api.impl
+package com.maxleap.bifrost.kotlin.api
 
 import com.google.inject.Guice
 import com.google.inject.Injector

@@ -1,12 +1,10 @@
 package com.maxleap.bifrost.kotlin
 
-import com.maxleap.bifrost.kotlin.api.impl.MgoNamespacePandora
-import com.maxleap.bifrost.kotlin.api.impl.PandoraSupport
+import com.maxleap.bifrost.kotlin.api.PandoraSupport
 import com.maxleap.bifrost.kotlin.core.BifrostSwapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetServer
-import io.vertx.core.net.NetServerOptions
 import io.vertx.kotlin.core.net.NetServerOptions
 import org.slf4j.LoggerFactory
 import java.lang.invoke.MethodHandles
@@ -29,9 +27,6 @@ class BifrostServer: AbstractVerticle() {
   override fun start() {
     super.start()
 
-
-
-
     bifrostServer = vertx.createNetServer(NetServerOptions(tcpNoDelay = true, usePooledBuffers = true))
 
     val netClient = vertx.createNetClient(NetClientOptions()
@@ -46,7 +41,12 @@ class BifrostServer: AbstractVerticle() {
     }
     this.bifrostServer.listen(defaultMgoPort, {
       when (it.succeeded()) {
-        true -> logger.info("bifrost server start at port:$defaultMgoPort success! ")
+        true -> logger.info("  | |      ___    __ _    | '_ \\  / __|    | |     ___    _  _    __| |  \n" +
+          "  | |__   / -_)  / _` |   | .__/ | (__     | |    / _ \\  | +| |  / _` |  \n" +
+          "  |____|  \\___|  \\__,_|   |_|__   \\___|   _|_|_   \\___/   \\_,_|  \\__,_|  \n" +
+          "_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"| \n" +
+          "\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-' " +
+          "\nbifrost server start at port:$defaultMgoPort success! ")
         else -> {
           logger.error("bifrost server start failed!!!", it.cause())
           System.exit(2)

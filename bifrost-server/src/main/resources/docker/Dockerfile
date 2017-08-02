@@ -9,7 +9,6 @@ mkdir -p /opt/bifrost-kotlin
 #覆盖vert.x 相关配置
 ADD lib/ $VERTX_HOME/lib/
 ADD log4j2.xml $VERTX_HOME/conf
-ADD zookeeper.properties $VERTX_HOME/conf
 ADD zookeeper.json $VERTX_HOME/conf
 ADD config.json /opt/bifrost-kotlin/
 ADD start.sh /opt/bifrost-kotlin/

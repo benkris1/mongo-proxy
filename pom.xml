@@ -21,6 +21,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
+        <maxleap-stack.version>15</maxleap-stack.version>
         <bifrost.version>${project.version}</bifrost.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.compiler.languageVersion>1.1</kotlin.compiler.languageVersion>

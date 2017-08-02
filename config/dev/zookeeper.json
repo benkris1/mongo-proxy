@@ -1,0 +1,11 @@
+{
+  "zookeeperHosts":"10.10.10.121",
+  "sessionTimeout":90000,
+  "connectTimeout":3000,
+  "rootPath":"leap.cloud.cn.bifrost.dev",
+  "retry": {
+    "initialSleepTime":100,
+    "intervalTimes":10000,
+    "maxTimes":5
+  }
+}
