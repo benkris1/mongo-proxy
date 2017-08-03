@@ -3,7 +3,7 @@
   <Appenders>
 
     <RollingFile name="RollingFile" fileName="log/bifrost.log" filePattern="log/bifrost.%i">
-      <PatternLayout pattern="[%d{YYYY:MM:DD HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+      <PatternLayout pattern="[%d{yyyy:MM:DD HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
       <DefaultRolloverStrategy max="16"/>
       <Policies>
         <SizeBasedTriggeringPolicy size="10 MB"/>

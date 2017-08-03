@@ -1,6 +1,5 @@
 package com.maxleap.bifrost.kotlin.core.ext
 
-import com.google.common.base.Objects
 import com.maxleap.bifrost.kotlin.api.Namespace
 import com.maxleap.bifrost.kotlin.api.NamespaceFactory
 import com.maxleap.bifrost.kotlin.api.impl.PandoraNamespaceFactory
@@ -14,14 +13,14 @@ import com.maxleap.bifrost.kotlin.core.model.op.OpQuery
 import com.maxleap.bifrost.kotlin.core.utils.Buffered
 import com.maxleap.bifrost.kotlin.core.utils.Callback
 import com.maxleap.bifrost.kotlin.core.utils.Do
-import com.maxleap.pandora.config.HostAndPort
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientOptions
 import com.mongodb.ServerAddress
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
-import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.RandomUtils
+import org.apache.commons.lang3.StringUtils
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.io.Closeable
@@ -161,12 +160,12 @@ class MgoTransport(val endpoint: DirectEndpoint,
           val netSocketWrapper = serverSockets.get(collectionName)
           netSocketWrapper?:let {
 
-            val hostAndPort = findMaster(namespace.serveAddress())
-             hostAndPort?.let {
+            val serverAddress = findMaster(namespace.serveAddress())
+            serverAddress?.let {
                  val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,it,netClient,{this.onClose(it)})
                  serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
                netSocketWrapper_tmp
-             }?:throw MgoWrapperException("the replicaSetStatus error.${collectionName}")
+             }?:throw MgoWrapperException("the namespace status error.${collectionName}")
 
           }
         }
@@ -183,23 +182,24 @@ class MgoTransport(val endpoint: DirectEndpoint,
     /**
      * doc https://docs.mongodb.com/manual/reference/replica-states/
      */
-    private fun findMaster(serverAddress: List<ServerAddress>): HostAndPort? {
+    private fun findMaster(serverAddress: List<ServerAddress>): ServerAddress? {
       var mgoClient :MongoClient ?= null
       try{
         mgoClient = MongoClient(serverAddress,MongoClientOptions.builder().connectTimeout(10).build())
-        val runCommand = mgoClient.getDatabase("admin").runCommand(Document("replSetGetStatus", 1))
-        val members = runCommand.get("members") as List<Map<String,Any>>
-        if(CollectionUtils.isEmpty(members)) {
-          throw MgoWrapperException("can't get primary from ${serverAddress}")
+        val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
+        val primary = runCommand.getString("primary")
+        if(null != primary) {
+          val name = primary.split(":")
+          return ServerAddress(name[0],Integer.valueOf(name[1]))
+        }else{
+          val msg = runCommand.getString("msg")
+          if(StringUtils.equals(msg,"isdbgrid")) {
+            val pos =  RandomUtils.nextInt(0,serverAddress.size)
+            return serverAddress[pos]
+          }
         }
-        var master = members.filter {
-          Objects.equal(it.get("state"),1)
-        }.map {
-          val name = (it.get("name") as String ).split(":")
-          ServerAddress(name[0],Integer.valueOf(name[1]))
-        }
-          .first()
-        return HostAndPort(master.host,master.port)
+        return null
+
       }catch (throwable :Throwable) {
         logger.error("can't get primary from ${serverAddress},error msg:${throwable.message}",throwable)
         throw MgoWrapperException("can't get primary from ${serverAddress}")
@@ -233,7 +233,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
     }
   }
 
-  inner class NetSocketWrapper(val collectionName:String, namespace: Namespace, val hostAndPort: HostAndPort, val netClient: NetClient,val closed:Callback<NetSocketWrapper>?=null):Closeable {
+  inner class NetSocketWrapper(val collectionName:String, namespace: Namespace, val serverAddress: ServerAddress, val netClient: NetClient,val closed:Callback<NetSocketWrapper>?=null):Closeable {
 
     private var socket: NetSocket? = null
     val serverUrls:String
@@ -257,7 +257,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
 
     fun connect(): CompletableFuture<NetSocketWrapper>{
       var cf = CompletableFuture<NetSocketWrapper>()
-      netClient.connect(hostAndPort.port,hostAndPort.host, {
+      netClient.connect(serverAddress.port,serverAddress.host, {
         if(it.succeeded()) {
           val socket = it.result()
           socket.exceptionHandler {
