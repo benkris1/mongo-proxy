@@ -173,7 +173,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
 
     fun getSocketWrapper(collectionName:String) : NetSocketWrapper? {
       val netSocketWrapper = serverSockets.get(collectionName)
-      if(null != netSocketWrapper && null != netSocketWrapper.netClient) {
+      if(null != netSocketWrapper && null == netSocketWrapper.netClient) {
         serverSockets.remove(collectionName)
       }
       return netSocketWrapper

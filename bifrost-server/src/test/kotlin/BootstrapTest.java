@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import java.io.InputStreamReader;
+import java.util.Map;
 
 /**
  *bifrost test server
@@ -26,7 +27,7 @@ public class BootstrapTest{
     Async async = testContext.async();
     this.vertx = Vertx.vertx();
 
-    JsonObject config = Json.mapper.readValue(new InputStreamReader(BootstrapTest.class.getClassLoader().getResourceAsStream("config.json")),JsonObject.class);
+    JsonObject config = new JsonObject(Json.mapper.readValue(new InputStreamReader(BootstrapTest.class.getClassLoader().getResourceAsStream("config.json")),Map.class));
 
     deployVerticle("com.maxleap.bifrost.kotlin.BifrostServer", config).subscribe( result -> logger.info("start success"));
     async.complete();

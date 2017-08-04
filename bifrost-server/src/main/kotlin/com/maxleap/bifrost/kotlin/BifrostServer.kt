@@ -34,7 +34,9 @@ class BifrostServer: AbstractVerticle() {
       .setReconnectInterval(NetClientOptions.DEFAULT_RECONNECT_INTERVAL)
       .setConnectTimeout(1000)
     )
+
     this.bifrostServer.connectHandler {
+      logger.info("accept connection from ${it.remoteAddress()}")
       it.pause()
       BifrostSwapper(it,netClient,1)
       it.resume()
