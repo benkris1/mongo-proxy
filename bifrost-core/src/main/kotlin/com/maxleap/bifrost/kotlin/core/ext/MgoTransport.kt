@@ -16,6 +16,8 @@ import com.maxleap.bifrost.kotlin.core.utils.Do
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientOptions
 import com.mongodb.ServerAddress
+import io.vertx.core.Future
+import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
@@ -25,8 +27,7 @@ import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.lang.invoke.MethodHandles
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -62,17 +63,24 @@ class MgoTransport(val endpoint: DirectEndpoint,
       netSocketWrapperFactory.getSocketWrapper(opRequest.nameSpace.databaseName)?.let {
         swapper(opRequest,chunk.swapperBuffer(),it)
       }?:netSocketWrapperFactory.createSocketWrapper(opRequest.nameSpace.databaseName)
-        .thenComposeAsync {
+        .compose{
           it.connect()
         }
-        .thenApply {
+        .map{
           swapper(opRequest,chunk.swapperBuffer(),it)
         }
-        .exceptionally {
-          logger.info(it.message,it)
-          failResponse(opRequest,it.message?:"can't connect mgo server for ${opRequest.nameSpace}")
-          null
+        .otherwise{
+          logger.error(it.message, it.cause)
+          failResponse(opRequest, it.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
         }
+        /*.whenCompleteAsync { _,e ->
+          run {
+            e?.let {
+              logger.error(e.message, e)
+              failResponse(opRequest, e.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
+            }
+          }
+        }*/
     }catch (throwable:Throwable){
       failResponse(opRequest,throwable.message?:"can't swapper mgo server for ${opRequest.nameSpace}")
     }
@@ -138,37 +146,36 @@ class MgoTransport(val endpoint: DirectEndpoint,
 
 
   inner class NetSocketWrapperFactory:Closeable {
-    private val serverSockets = ConcurrentHashMap<String,NetSocketWrapper>()
+    private val serverSockets = WeakHashMap<String,NetSocketWrapper>()
     private val mgoNamespaceFactory :NamespaceFactory
 
     init {
       mgoNamespaceFactory = PandoraNamespaceFactory()
     }
 
-    fun createSocketWrapper(collectionName: String):CompletableFuture<NetSocketWrapper> {
-      return CompletableFuture.supplyAsync {
-         mgoNamespaceFactory.loadNamespace(collectionName)
-      }
-        .thenApply {
-          val namespace = it
-          val urls = namespace?.getAddressAsString()
-          serverSockets.forEach { k, v ->
-            if (v.serverUrls.equals(urls)) {
-              serverSockets.putIfAbsent(collectionName, v)
-            }
-          }
-          val netSocketWrapper = serverSockets.get(collectionName)
-          netSocketWrapper?:let {
-
-            val serverAddress = findMaster(namespace.serveAddress())
-            serverAddress?.let {
-                 val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,it,netClient,{this.onClose(it)})
-                 serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
-               netSocketWrapper_tmp
-             }?:throw MgoWrapperException("the namespace status error.${collectionName}")
-
+    fun createSocketWrapper(collectionName: String):Future<NetSocketWrapper> {
+      return AsyncPool.execute(Handler {
+        var f= it
+        var namespace = mgoNamespaceFactory.loadNamespace(collectionName)
+        val urls = namespace?.getAddressAsString()
+        serverSockets.forEach { k, v ->
+          if (v.serverUrls.equals(urls)) {
+            serverSockets.putIfAbsent(collectionName, v)
           }
         }
+        val netSocketWrapper = serverSockets.get(collectionName)
+        netSocketWrapper?:let {
+
+          val serverAddress = findMaster(namespace.serveAddress())
+          serverAddress?.let {
+            val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,it,netClient,{this.onClose(it)})
+            serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
+            netSocketWrapper_tmp
+            f.complete(netSocketWrapper_tmp)
+          }?:throw MgoWrapperException("the namespace status error.${collectionName}")
+
+        }
+       })
     }
 
     fun getSocketWrapper(collectionName:String) : NetSocketWrapper? {
@@ -186,7 +193,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
       serverAddress.forEach {
         var mgoClient :MongoClient ?= null
         try{
-          mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(2).build())
+          mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(10).build())
           val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
           val primary = runCommand.getString("primary")
           if(null != primary) {
@@ -255,8 +262,8 @@ class MgoTransport(val endpoint: DirectEndpoint,
       namespace.onChange { dataSourceStatus = it  }
     }
 
-    fun connect(): CompletableFuture<NetSocketWrapper>{
-      var cf = CompletableFuture<NetSocketWrapper>()
+    fun connect(): Future<NetSocketWrapper>{
+      var cf = Future.future<NetSocketWrapper>()
       netClient.connect(serverAddress.port,serverAddress.host, {
         if(it.succeeded()) {
           val socket = it.result()
@@ -274,8 +281,8 @@ class MgoTransport(val endpoint: DirectEndpoint,
              * TODO retry
              * 主动关闭和被动关闭都会调用 想把发把被动关闭retry
              */
-            closed?.invoke(this)
             this.socket = null
+            closed?.invoke(this)
           }
           socket.handler{
             endpoint.write(it)
@@ -288,7 +295,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
         }else {
           var cause = it.cause()
           logger.error("can't  connect nameSpace ${collectionName} cause:${cause.message}",cause)
-          cf.obtrudeException(cause)
+          cf.fail(cause)
         }
       })
       return  cf

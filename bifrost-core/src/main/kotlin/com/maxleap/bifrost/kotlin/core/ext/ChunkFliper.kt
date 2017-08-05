@@ -33,7 +33,6 @@ class ChunkFliper(private val parse: RecordParser,
         this.parse.fixedSizeMode(length - 4)
       }
       ReadStat.HANDSHAKE -> {
-
         this.state = ReadStat.CHUNK_HEADER_BSC
         this.parse.fixedSizeMode(4)
         var msgHeader = MsgHeader.fromBuffer(length, buffer)

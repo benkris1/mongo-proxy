@@ -26,6 +26,7 @@ import java.util.regex.Pattern
  */
 class OpTest {
   private val ADDRESS = "localhost"
+  //private val ADDRESS = "10.10.0.6"
   private lateinit var mgoClient:MongoClient
   private val dbName = "geo_blocks"
   private val collectionName = "bifrost_kotlin"

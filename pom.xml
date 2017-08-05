@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.maxleap</groupId>
         <artifactId>maxleap-parent</artifactId>
-        <version>15</version>
+        <version>20</version>
     </parent>
 
     <groupId>com.maxleap</groupId>
@@ -21,7 +21,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maxleap-stack.version>15</maxleap-stack.version>
+        <maxleap-stack.version>20</maxleap-stack.version>
         <bifrost.version>${project.version}</bifrost.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.compiler.languageVersion>1.1</kotlin.compiler.languageVersion>
@@ -74,7 +74,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
+          <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-lang-kotlin</artifactId>
                 <version>${vertx-stack.version}</version>

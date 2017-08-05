@@ -2,6 +2,7 @@ package com.maxleap.bifrost.kotlin
 
 import com.maxleap.bifrost.kotlin.api.PandoraSupport
 import com.maxleap.bifrost.kotlin.core.BifrostSwapper
+import com.maxleap.bifrost.kotlin.core.ext.AsyncPool
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetServer
@@ -41,6 +42,7 @@ class BifrostServer: AbstractVerticle() {
       BifrostSwapper(it,netClient,1)
       it.resume()
     }
+    AsyncPool.init(vertx)
     this.bifrostServer.listen(defaultMgoPort, {
       when (it.succeeded()) {
         true -> logger.info("  | |      ___    __ _    | '_ \\  / __|    | |     ___    _  _    __| |  \n" +

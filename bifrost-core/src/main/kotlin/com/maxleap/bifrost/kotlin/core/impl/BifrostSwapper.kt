@@ -1,6 +1,7 @@
 package com.maxleap.bifrost.kotlin.core
 
 import `as`.leap.raptor.core.impl.Swapper
+import io.vertx.core.Vertx
 import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
 

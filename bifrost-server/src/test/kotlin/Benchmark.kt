@@ -25,8 +25,8 @@ import com.mongodb.client.MongoCollection
  */
 
 class Benchmark {
-  //private val ADDRESS = "localhost"
-  private val ADDRESS = "10.10.0.6"
+  private val ADDRESS = "localhost"
+  //private val ADDRESS = "10.10.0.6"
   private val httpClient:OkHttpClient = OkHttpClient()
   @Before
   fun before(){

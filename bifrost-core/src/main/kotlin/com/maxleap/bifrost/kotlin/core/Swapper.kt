@@ -7,6 +7,7 @@ import com.maxleap.bifrost.kotlin.core.ext.Handshaking
 import com.maxleap.bifrost.kotlin.core.ext.MgoTransport
 import com.maxleap.bifrost.kotlin.core.ext.SASLAuth
 import com.maxleap.bifrost.kotlin.core.model.Reply
+import io.vertx.core.Vertx
 import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
 import org.slf4j.LoggerFactory
