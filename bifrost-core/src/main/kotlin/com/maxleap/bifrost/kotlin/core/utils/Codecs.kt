@@ -98,11 +98,13 @@ object Codecs {
       return outputBuffer.toByteArray()
     }finally {
       writer.close()
+      outputBuffer.close()
     }
   }
 
   fun docFromByte(bytes:ByteArray): Document {
-    val bsonReader = BsonBinaryReader(ByteBuffer.wrap(bytes))
-    return DOCUMENT_CODEC.decode(bsonReader, DecoderContext.builder().build())
+    BsonBinaryReader(ByteBuffer.wrap(bytes)).use {
+      return DOCUMENT_CODEC.decode(it, DecoderContext.builder().build())
+    }
   }
 }

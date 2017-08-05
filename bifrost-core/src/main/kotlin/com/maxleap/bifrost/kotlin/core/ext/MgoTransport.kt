@@ -173,7 +173,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
 
     fun getSocketWrapper(collectionName:String) : NetSocketWrapper? {
       val netSocketWrapper = serverSockets.get(collectionName)
-      if(null != netSocketWrapper && null == netSocketWrapper.netClient) {
+      if(null != netSocketWrapper && null == netSocketWrapper.socket()) {
         serverSockets.remove(collectionName)
       }
       return netSocketWrapper
@@ -183,31 +183,31 @@ class MgoTransport(val endpoint: DirectEndpoint,
      * doc https://docs.mongodb.com/manual/reference/replica-states/
      */
     private fun findMaster(serverAddress: List<ServerAddress>): ServerAddress? {
-      var mgoClient :MongoClient ?= null
-      try{
-        mgoClient = MongoClient(serverAddress,MongoClientOptions.builder().connectTimeout(10).build())
-        val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
-        val primary = runCommand.getString("primary")
-        if(null != primary) {
-          val name = primary.split(":")
-          return ServerAddress(name[0],Integer.valueOf(name[1]))
-        }else{
-          val msg = runCommand.getString("msg")
-          if(StringUtils.equals(msg,"isdbgrid")) {
-            val pos =  RandomUtils.nextInt(0,serverAddress.size)
-            return serverAddress[pos]
+      serverAddress.forEach {
+        var mgoClient :MongoClient ?= null
+        try{
+          mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(2).build())
+          val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
+          val primary = runCommand.getString("primary")
+          if(null != primary) {
+            val name = primary.split(":")
+            return@findMaster ServerAddress(name[0],Integer.valueOf(name[1]))
+          }else{
+            val msg = runCommand.getString("msg")
+            if(StringUtils.equals(msg,"isdbgrid")) {
+              val pos =  RandomUtils.nextInt(0,serverAddress.size)
+              return@findMaster serverAddress[pos]
+            }
+          }
+        }catch (throwable :Throwable) {
+          logger.error("can't get primary from ${serverAddress},error msg:${throwable.message}",throwable)
+        }finally {
+          mgoClient?.let {
+            it.close()
           }
         }
-        return null
-
-      }catch (throwable :Throwable) {
-        logger.error("can't get primary from ${serverAddress},error msg:${throwable.message}",throwable)
-        throw MgoWrapperException("can't get primary from ${serverAddress}")
-      }finally {
-        mgoClient?.let {
-          it.close()
-        }
       }
+      throw MgoWrapperException("can't get primary from ${serverAddress}")
     }
 
     /**
@@ -297,6 +297,8 @@ class MgoTransport(val endpoint: DirectEndpoint,
     fun write(buffer:Buffer) {
       socket?.write(buffer) ?: throw MgoWrapperException("can't connect  mgo server for ${collectionName}.")
     }
+
+    fun socket():NetSocket? = socket
 
     override fun close() {
       synchronized(this) {
