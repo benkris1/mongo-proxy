@@ -25,8 +25,8 @@ import com.mongodb.client.MongoCollection
  */
 
 class Benchmark {
-  private val ADDRESS = "localhost"
-  //private val ADDRESS = "10.10.0.6"
+  //private val ADDRESS = "localhost"
+  private val ADDRESS = "10.10.0.6"
   private val httpClient:OkHttpClient = OkHttpClient()
   @Before
   fun before(){
@@ -39,8 +39,8 @@ class Benchmark {
 
     val start = System.currentTimeMillis()
 
-    val countDownLatch1 = CountDownLatch(10000)
-    for(i in 1 .. 10000) {
+    val countDownLatch1 = CountDownLatch(1000)
+    for(i in 1 .. 1000) {
       CompletableFuture.supplyAsync {
         countDownLatch1.countDown()
         val mongoCredentials = ArrayList<MongoCredential>()

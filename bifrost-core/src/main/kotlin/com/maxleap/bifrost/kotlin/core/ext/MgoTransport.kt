@@ -23,11 +23,13 @@ import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
 import org.apache.commons.lang3.RandomUtils
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.lang.invoke.MethodHandles
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -70,7 +72,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
           swapper(opRequest,chunk.swapperBuffer(),it)
         }
         .otherwise{
-          logger.error(it.message, it.cause)
+          logger.error(ExceptionUtils.getStackTrace(it))
           failResponse(opRequest, it.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
         }
         /*.whenCompleteAsync { _,e ->
@@ -146,7 +148,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
 
 
   inner class NetSocketWrapperFactory:Closeable {
-    private val serverSockets = WeakHashMap<String,NetSocketWrapper>()
+    private val serverSockets = ConcurrentHashMap<String,NetSocketWrapper>()
     private val mgoNamespaceFactory :NamespaceFactory
 
     init {
@@ -158,24 +160,21 @@ class MgoTransport(val endpoint: DirectEndpoint,
         var f= it
         var namespace = mgoNamespaceFactory.loadNamespace(collectionName)
         val urls = namespace?.getAddressAsString()
-        serverSockets.forEach { k, v ->
-          if (v.serverUrls.equals(urls)) {
-            serverSockets.putIfAbsent(collectionName, v)
-          }
-        }
-        val netSocketWrapper = serverSockets.get(collectionName)
-        netSocketWrapper?:let {
+        val netSocketWrapper = serverSockets.values
+          .filter { it.serverUrls.equals(urls) }
+          .firstOrNull()
 
+        netSocketWrapper?.let{
+          serverSockets.putIfAbsent(collectionName, it)
+          f.complete(it)
+        }?:let {
           val serverAddress = findMaster(namespace.serveAddress())
-          serverAddress?.let {
-            val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,it,netClient,{this.onClose(it)})
-            serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
-            netSocketWrapper_tmp
-            f.complete(netSocketWrapper_tmp)
-          }?:throw MgoWrapperException("the namespace status error.${collectionName}")
-
+          val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,serverAddress,netClient,{this.onClose(it)})
+          serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
+          netSocketWrapper_tmp
+          f.complete(netSocketWrapper_tmp)
         }
-       })
+      })
     }
 
     fun getSocketWrapper(collectionName:String) : NetSocketWrapper? {
@@ -189,8 +188,9 @@ class MgoTransport(val endpoint: DirectEndpoint,
     /**
      * doc https://docs.mongodb.com/manual/reference/replica-states/
      */
-    private fun findMaster(serverAddress: List<ServerAddress>): ServerAddress? {
+    private fun findMaster(serverAddress: List<ServerAddress>): ServerAddress {
       serverAddress.forEach {
+      //Lists.newArrayList<ServerAddress>().forEach {
         var mgoClient :MongoClient ?= null
         try{
           mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(10).build())
