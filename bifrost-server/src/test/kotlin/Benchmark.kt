@@ -26,7 +26,8 @@ import com.mongodb.client.MongoCollection
 
 class Benchmark {
   //private val ADDRESS = "localhost"
-  private val ADDRESS = "10.10.0.6"
+  private val ADDRESS_PROXY = "10.10.0.6"
+  private val ADDRESS = "mongo.userdata.2"
   private val httpClient:OkHttpClient = OkHttpClient()
   @Before
   fun before(){
@@ -45,9 +46,33 @@ class Benchmark {
         countDownLatch1.countDown()
         val mongoCredentials = ArrayList<MongoCredential>()
         mongoCredentials.add(MongoCredential.createCredential("maxleap", "platform_data", "maxleap10086".toCharArray()))
-        var mgoClient = MongoClient(ServerAddress(ADDRESS, 27017),mongoCredentials)
+        var mgoClient = MongoClient(ServerAddress(ADDRESS, 27013))
         val collection = mgoClient.getDatabase("platform_data").getCollection("zcloud_application")
-        collection.find().limit(100).forEach { it }
+        collection.find().limit(1000).forEach { it }
+        mgoClient.close()
+      }.exceptionally {
+        it.printStackTrace()
+      }
+    }
+    countDownLatch1.await()
+    System.out.println(System.currentTimeMillis() - start);
+  }
+
+  @Test
+  fun testProxy() {
+
+    val start = System.currentTimeMillis()
+
+    val countDownLatch1 = CountDownLatch(1000)
+    for(i in 1 .. 1000) {
+      CompletableFuture.supplyAsync {
+        countDownLatch1.countDown()
+        val mongoCredentials = ArrayList<MongoCredential>()
+        mongoCredentials.add(MongoCredential.createCredential("maxleap", "platform_data", "maxleap10086".toCharArray()))
+        var mgoClient = MongoClient(ServerAddress(ADDRESS_PROXY, 27017),mongoCredentials)
+        // var mgoClient = MongoClient(ServerAddress(ADDRESS, 27013))
+        val collection = mgoClient.getDatabase("platform_data").getCollection("zcloud_application")
+        collection.find().limit(1000).forEach { it }
         mgoClient.close()
       }.exceptionally {
         it.printStackTrace()

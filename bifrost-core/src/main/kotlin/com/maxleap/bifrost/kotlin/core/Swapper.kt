@@ -1,5 +1,4 @@
-package `as`.leap.raptor.core.impl
-
+package com.maxleap.bifrost.kotlin
 
 import com.maxleap.bifrost.kotlin.core.Endpoint
 import com.maxleap.bifrost.kotlin.core.endpoint.DirectEndpoint
@@ -7,22 +6,19 @@ import com.maxleap.bifrost.kotlin.core.ext.Handshaking
 import com.maxleap.bifrost.kotlin.core.ext.MgoTransport
 import com.maxleap.bifrost.kotlin.core.ext.SASLAuth
 import com.maxleap.bifrost.kotlin.core.model.Reply
-import io.vertx.core.Vertx
 import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.lang.invoke.MethodHandles
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 数据交换区
  */
 abstract class Swapper(
     socket: NetSocket,
-    netClient: NetClient,
-    reconnect: Int = 0
+    netClient: NetClient
 ) : Closeable {
   private val isClosed = AtomicBoolean(false)
   private val endpoint: Endpoint
@@ -31,7 +27,7 @@ abstract class Swapper(
     endpoint = DirectEndpoint(socket)
     val handshaking = Handshaking(this.endpoint, failed = { this.close() })
     val saslAuth = SASLAuth(this.endpoint,failed = {this.close()})
-    val mgoTransport = MgoTransport(endpoint,netClient,reconnect,failed = {this.close()})
+    val mgoTransport = MgoTransport(endpoint,netClient,failed = {this.close()})
     this.endpoint
       .onHandshake { handshaking.validate(it) }
       .onSASL { saslAuth.auth(it) }

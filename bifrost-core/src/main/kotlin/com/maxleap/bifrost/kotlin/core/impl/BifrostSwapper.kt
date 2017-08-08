@@ -1,7 +1,6 @@
 package com.maxleap.bifrost.kotlin.core
 
-import `as`.leap.raptor.core.impl.Swapper
-import io.vertx.core.Vertx
+import com.maxleap.bifrost.kotlin.Swapper
 import io.vertx.core.net.NetClient
 import io.vertx.core.net.NetSocket
 
@@ -16,10 +15,8 @@ import io.vertx.core.net.NetSocket
  */
 
 class BifrostSwapper(socket: NetSocket,
-                     netClient: NetClient,
-                     reconnect: Int = 0)
-  : Swapper(socket,netClient,reconnect) {
-
+                     netClient: NetClient)
+  : Swapper(socket,netClient) {
 
 
 }

@@ -39,13 +39,13 @@ class BifrostServer: AbstractVerticle() {
     this.bifrostServer.connectHandler {
       logger.info("accept connection from ${it.remoteAddress()}")
       it.pause()
-      BifrostSwapper(it,netClient,1)
+      BifrostSwapper(it,netClient)
       it.resume()
     }
     AsyncPool.init(vertx)
     this.bifrostServer.listen(defaultMgoPort, {
       when (it.succeeded()) {
-        true -> logger.info("  | |      ___    __ _    | '_ \\  / __|    | |     ___    _  _    __| |  \n" +
+        true -> logger.info("\n  | |      ___    __ _    | '_ \\  / __|    | |     ___    _  _    __| |  \n" +
           "  | |__   / -_)  / _` |   | .__/ | (__     | |    / _ \\  | +| |  / _` |  \n" +
           "  |____|  \\___|  \\__,_|   |_|__   \\___|   _|_|_   \\___/   \\_,_|  \\__,_|  \n" +
           "_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"| \n" +

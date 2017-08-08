@@ -28,7 +28,6 @@ import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.lang.invoke.MethodHandles
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -43,7 +42,6 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class MgoTransport(val endpoint: DirectEndpoint,
                    val netClient: NetClient,
-                   val reconnect:Int=0,
                    val failed: Do? = null):Closeable{
 
   private val isClosed = AtomicBoolean(false)
@@ -75,14 +73,6 @@ class MgoTransport(val endpoint: DirectEndpoint,
           logger.error(ExceptionUtils.getStackTrace(it))
           failResponse(opRequest, it.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
         }
-        /*.whenCompleteAsync { _,e ->
-          run {
-            e?.let {
-              logger.error(e.message, e)
-              failResponse(opRequest, e.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
-            }
-          }
-        }*/
     }catch (throwable:Throwable){
       failResponse(opRequest,throwable.message?:"can't swapper mgo server for ${opRequest.nameSpace}")
     }
@@ -190,7 +180,6 @@ class MgoTransport(val endpoint: DirectEndpoint,
      */
     private fun findMaster(serverAddress: List<ServerAddress>): ServerAddress {
       serverAddress.forEach {
-      //Lists.newArrayList<ServerAddress>().forEach {
         var mgoClient :MongoClient ?= null
         try{
           mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(10).build())
@@ -277,10 +266,6 @@ class MgoTransport(val endpoint: DirectEndpoint,
             if (logger.isDebugEnabled) {
               logger.debug("socket wrapper closed.")
             }
-            /**
-             * TODO retry
-             * 主动关闭和被动关闭都会调用 想把发把被动关闭retry
-             */
             this.socket = null
             closed?.invoke(this)
           }
