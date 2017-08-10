@@ -16,5 +16,6 @@ interface Namespace {
   fun getAddressAsString():String
   fun serveAddress():List<ServerAddress>
   fun namespaceStatus():NamespaceStatus
-  fun onChange(change:(status:NamespaceStatus) -> Unit)
+  fun onStatusChange(change:(status:NamespaceStatus) -> Unit)
+  fun onClusterChange(change:(name:String) -> Unit)
 }

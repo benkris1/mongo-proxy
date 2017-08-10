@@ -155,6 +155,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
       return AsyncPool.execute(Handler {
         var f= it
         var namespace = mgoNamespaceFactory.loadNamespace(collectionName)
+        namespace?.onClusterChange { this.close() }
         val urls = namespace?.getAddressAsString()
         val netSocketWrapper = serverSockets.values
           .filter { it.serverUrls.equals(urls) }
@@ -246,19 +247,8 @@ class MgoTransport(val endpoint: DirectEndpoint,
     var dataSourceStatus:NamespaceStatus
     init {
       serverUrls = namespace.getAddressAsString()
-      /*val listenerId = "close_mongo_server_socket_kotlin_" + System.nanoTime()
-      mgoDatabase.__cluster.addDataChangedListener(listenerId, { type, newValue ->
-        if (type === PathAndValue.EventType.Changed) {
-          *//**
-           * TODO
-           *//*
-          mgoDatabase.get__cluster().clearDataChangedListener(listenerId)
-        } else {
-          logger.warn("[event ignore]type: " + type)
-        }
-      })*/
       dataSourceStatus = namespace.namespaceStatus()
-      namespace.onChange { dataSourceStatus = it  }
+      namespace.onStatusChange { dataSourceStatus = it  }
     }
 
     fun connect(): Future<NetSocketWrapper>{
