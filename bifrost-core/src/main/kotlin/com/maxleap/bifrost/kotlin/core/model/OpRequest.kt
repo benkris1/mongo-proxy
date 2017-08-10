@@ -11,7 +11,7 @@ import io.vertx.core.buffer.Buffer
  * Email:benkris1@126.com
  *
  */
-abstract class OpRequest(msgHeader: MsgHeader, fullCollectionName:String):OpBase(msgHeader) {
+abstract class OpRequest(msgHeader: MsgHeader, fullCollectionName:String,val requestType:RequestType):OpBase(msgHeader) {
 
   val nameSpace:MongoNamespace
 

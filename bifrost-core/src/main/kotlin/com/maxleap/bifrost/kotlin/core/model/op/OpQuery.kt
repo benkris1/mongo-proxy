@@ -2,6 +2,7 @@ package com.maxleap.bifrost.kotlin.core.model.op
 
 import com.maxleap.bifrost.kotlin.core.model.MsgHeader
 import com.maxleap.bifrost.kotlin.core.model.OpRequest
+import com.maxleap.bifrost.kotlin.core.model.RequestType
 import com.maxleap.bifrost.kotlin.core.utils.Codecs
 import io.vertx.core.buffer.Buffer
 import org.bson.Document
@@ -20,7 +21,7 @@ data class OpQuery(val header: MsgHeader,
                     val skip:Int,
                     val numberReturn:Int,
                     val query: Document)
-  :OpRequest(header,collectionName) {
+  :OpRequest(header,collectionName,RequestType.OP_QUERY) {
 
 
   companion object {

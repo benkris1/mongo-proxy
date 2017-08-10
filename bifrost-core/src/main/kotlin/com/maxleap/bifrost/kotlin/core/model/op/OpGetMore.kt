@@ -2,6 +2,7 @@ package com.maxleap.bifrost.kotlin.core.model.op
 
 import com.maxleap.bifrost.kotlin.core.model.MsgHeader
 import com.maxleap.bifrost.kotlin.core.model.OpRequest
+import com.maxleap.bifrost.kotlin.core.model.RequestType
 import io.vertx.core.buffer.Buffer
 
 /**
@@ -17,7 +18,7 @@ data class OpGetMore(val header: MsgHeader,
                      val collectionName:String,
                      val numberReturn:Int,
                      val cursorId: Long)
-  :OpRequest(header,collectionName) {
+  :OpRequest(header,collectionName,RequestType.OP_GET_MORE) {
 
 
   companion object {

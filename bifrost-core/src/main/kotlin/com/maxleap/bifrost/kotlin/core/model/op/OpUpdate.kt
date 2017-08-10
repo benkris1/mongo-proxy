@@ -2,6 +2,7 @@ package com.maxleap.bifrost.kotlin.core.model.op
 
 import com.maxleap.bifrost.kotlin.core.model.MsgHeader
 import com.maxleap.bifrost.kotlin.core.model.OpRequest
+import com.maxleap.bifrost.kotlin.core.model.RequestType
 import io.vertx.core.buffer.Buffer
 import org.bson.Document
 
@@ -19,11 +20,14 @@ data class OpUpdate(val header: MsgHeader,
                     val flags:Int,
                     val selector:Document ?,
                     var update:Document ?)
-  :OpRequest(header,collectionName) {
+  :OpRequest(header,collectionName,RequestType.OP_UPDATE) {
 
 
   companion object {
-
+    /**
+     * TODO
+     * 解析 selector 和 update
+     */
     fun fromBuffer(header: MsgHeader,buffer: Buffer):OpUpdate {
       val zero = buffer.getIntLE(12)
       val endPosition = endPosition(buffer, 16)

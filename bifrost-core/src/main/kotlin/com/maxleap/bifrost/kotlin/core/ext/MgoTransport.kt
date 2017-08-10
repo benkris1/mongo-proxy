@@ -4,7 +4,9 @@ import com.maxleap.bifrost.kotlin.api.Namespace
 import com.maxleap.bifrost.kotlin.api.NamespaceFactory
 import com.maxleap.bifrost.kotlin.api.impl.PandoraNamespaceFactory
 import com.maxleap.bifrost.kotlin.core.MgoWrapperException
+import com.maxleap.bifrost.kotlin.core.TransportListener
 import com.maxleap.bifrost.kotlin.core.endpoint.DirectEndpoint
+import com.maxleap.bifrost.kotlin.core.impl.MonitorTransportListener
 import com.maxleap.bifrost.kotlin.core.model.*
 import com.maxleap.bifrost.kotlin.core.model.admin.cmd.GetLog
 import com.maxleap.bifrost.kotlin.core.model.admin.cmd.HostInfo
@@ -42,7 +44,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class MgoTransport(val endpoint: DirectEndpoint,
                    val netClient: NetClient,
-                   val failed: Do? = null):Closeable{
+                   val failed: Do? = null
+                   ):Closeable{
 
   private val isClosed = AtomicBoolean(false)
   private val netSocketWrapperFactory:NetSocketWrapperFactory
@@ -70,10 +73,12 @@ class MgoTransport(val endpoint: DirectEndpoint,
           swapper(opRequest,chunk.swapperBuffer(),it)
         }
         .otherwise{
+          failed?.invoke()
           logger.error(ExceptionUtils.getStackTrace(it))
           failResponse(opRequest, it.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
         }
     }catch (throwable:Throwable){
+      failed?.invoke()
       failResponse(opRequest,throwable.message?:"can't swapper mgo server for ${opRequest.nameSpace}")
     }
 
@@ -117,12 +122,12 @@ class MgoTransport(val endpoint: DirectEndpoint,
   private fun swapper(opRequest: OpRequest,buffer: Buffer,netSocketWrapper: NetSocketWrapper) {
     when(netSocketWrapper.dataSourceStatus) {
       NamespaceStatus.ENABLE -> {
-        netSocketWrapper.write(buffer)
+        netSocketWrapper.write(opRequest,buffer)
       }
       NamespaceStatus.READONLY -> {
         when(opRequest) {
-          is OpQuery -> netSocketWrapper.write(buffer)
-          is OpGetMore -> netSocketWrapper.write(buffer)
+          is OpQuery -> netSocketWrapper.write(opRequest,buffer)
+          is OpGetMore -> netSocketWrapper.write(opRequest,buffer)
           else -> {
              //TODO 不需要返回
           }
@@ -159,7 +164,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
           f.complete(it)
         }?:let {
           val serverAddress = findMaster(namespace.serveAddress())
-          val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,serverAddress,netClient,{this.onClose(it)})
+          val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,serverAddress,netClient,{this.onClose(it)}, listOf(MonitorTransportListener()))
           serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
           netSocketWrapper_tmp
           f.complete(netSocketWrapper_tmp)
@@ -229,7 +234,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
     }
   }
 
-  inner class NetSocketWrapper(val collectionName:String, namespace: Namespace, val serverAddress: ServerAddress, val netClient: NetClient,val closed:Callback<NetSocketWrapper>?=null):Closeable {
+  inner class NetSocketWrapper(val collectionName:String, namespace: Namespace, val serverAddress: ServerAddress, val netClient: NetClient,val closed:Callback<NetSocketWrapper>?=null,val transportListeners: List<TransportListener> = arrayListOf()):Closeable {
 
     private var socket: NetSocket? = null
     val serverUrls:String
@@ -256,11 +261,15 @@ class MgoTransport(val endpoint: DirectEndpoint,
       netClient.connect(serverAddress.port,serverAddress.host, {
         if(it.succeeded()) {
           val socket = it.result()
-          socket.exceptionHandler {
-            if (logger.isDebugEnabled) {
-              logger.debug("socket wrapper error.", it)
+          socket.exceptionHandler { e ->
+            run {
+              if (logger.isDebugEnabled) {
+                logger.debug("socket wrapper error.", it)
+              }
+              transportListeners.forEach {
+                it.exception(e)
+              }
             }
-            //failed?.invoke();
           }
           socket.closeHandler {
             if (logger.isDebugEnabled) {
@@ -268,9 +277,17 @@ class MgoTransport(val endpoint: DirectEndpoint,
             }
             this.socket = null
             closed?.invoke(this)
+            transportListeners.forEach {
+              it.close()
+            }
           }
           socket.handler{
             endpoint.write(it)
+            transportListeners.forEach { listener ->
+              run {
+                listener.transport(it)
+              }
+            }
           }
           this.socket = socket
           cf.complete(this)
@@ -286,8 +303,11 @@ class MgoTransport(val endpoint: DirectEndpoint,
       return  cf
     }
 
-    fun write(buffer:Buffer) {
+    fun write(opRequest: OpRequest,buffer:Buffer) {
       socket?.write(buffer) ?: throw MgoWrapperException("can't connect  mgo server for ${collectionName}.")
+      transportListeners.forEach {
+        it.transportStart(opRequest)
+      }
     }
 
     fun socket():NetSocket? = socket
@@ -297,6 +317,9 @@ class MgoTransport(val endpoint: DirectEndpoint,
         if (this.socket != null) {
           this.socket!!.close()
           this.socket = null
+          transportListeners.forEach {
+            it.close()
+          }
         }
       }
     }
