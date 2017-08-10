@@ -1,6 +1,7 @@
 package com.maxleap.bifrost.kotlin
 
 import com.maxleap.bifrost.kotlin.api.PandoraSupport
+import com.maxleap.bifrost.kotlin.core.BifrostConfig
 import com.maxleap.bifrost.kotlin.core.BifrostSwapper
 import com.maxleap.bifrost.kotlin.core.ext.AsyncPool
 import io.vertx.core.AbstractVerticle
@@ -27,9 +28,9 @@ class BifrostServer: AbstractVerticle() {
   }
   override fun start() {
     super.start()
+    BifrostConfig.init(config())
 
     bifrostServer = vertx.createNetServer(NetServerOptions(tcpNoDelay = true, usePooledBuffers = true))
-
     val netClient = vertx.createNetClient(NetClientOptions()
       .setReconnectAttempts(3)
       .setReconnectInterval(NetClientOptions.DEFAULT_RECONNECT_INTERVAL)
@@ -43,14 +44,14 @@ class BifrostServer: AbstractVerticle() {
       it.resume()
     }
     AsyncPool.init(vertx)
-    this.bifrostServer.listen(defaultMgoPort, {
+    this.bifrostServer.listen(BifrostConfig.port(), {
       when (it.succeeded()) {
         true -> logger.info("\n  | |      ___    __ _    | '_ \\  / __|    | |     ___    _  _    __| |  \n" +
           "  | |__   / -_)  / _` |   | .__/ | (__     | |    / _ \\  | +| |  / _` |  \n" +
           "  |____|  \\___|  \\__,_|   |_|__   \\___|   _|_|_   \\___/   \\_,_|  \\__,_|  \n" +
           "_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"| \n" +
           "\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-' " +
-          "\nbifrost server start at port:$defaultMgoPort success! ")
+          "\nbifrost server start at port:${BifrostConfig.port()} success! \n")
         else -> {
           logger.error("bifrost server start failed!!!", it.cause())
           System.exit(2)
@@ -74,6 +75,5 @@ class BifrostServer: AbstractVerticle() {
 
   companion object {
     private val logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())
-    private val defaultMgoPort = 27017
   }
 }

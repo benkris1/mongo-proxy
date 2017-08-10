@@ -3,6 +3,7 @@ package com.maxleap.bifrost.kotlin.core.ext
 import com.maxleap.bifrost.kotlin.api.Namespace
 import com.maxleap.bifrost.kotlin.api.NamespaceFactory
 import com.maxleap.bifrost.kotlin.api.impl.PandoraNamespaceFactory
+import com.maxleap.bifrost.kotlin.core.BifrostConfig
 import com.maxleap.bifrost.kotlin.core.MgoWrapperException
 import com.maxleap.bifrost.kotlin.core.TransportListener
 import com.maxleap.bifrost.kotlin.core.endpoint.DirectEndpoint
@@ -164,7 +165,11 @@ class MgoTransport(val endpoint: DirectEndpoint,
           f.complete(it)
         }?:let {
           val serverAddress = findMaster(namespace.serveAddress())
-          val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,serverAddress,netClient,{this.onClose(it)}, listOf(MonitorTransportListener()))
+          val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,
+            serverAddress,
+            netClient,{this.onClose(it)},
+            if (BifrostConfig.monitorEnable()) listOf(MonitorTransportListener()) else listOf()
+          )
           serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
           netSocketWrapper_tmp
           f.complete(netSocketWrapper_tmp)

@@ -1,3 +1,7 @@
 {
-  "port":9500
+  "port":27017,
+  "monitor":{
+    "enable":true,
+    "openTsDB":""
+  }
 }
