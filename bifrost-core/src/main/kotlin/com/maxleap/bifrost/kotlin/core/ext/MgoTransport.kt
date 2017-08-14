@@ -297,6 +297,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
     }
 
     fun write(opRequest: OpRequest,buffer:Buffer) {
+
       socket?.write(buffer) ?: throw MgoWrapperException("can't connect  mgo server for ${collectionName}.")
       transportListeners.forEach {
         it.transportStart(opRequest)

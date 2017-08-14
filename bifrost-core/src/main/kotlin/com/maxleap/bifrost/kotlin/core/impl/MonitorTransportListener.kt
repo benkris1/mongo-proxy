@@ -4,8 +4,10 @@ import com.maxleap.bifrost.kotlin.api.OpenTsDBClient
 import com.maxleap.bifrost.kotlin.core.TransportListener
 import com.maxleap.bifrost.kotlin.core.model.MonitorTrace
 import com.maxleap.bifrost.kotlin.core.model.OpRequest
+import org.apache.commons.lang3.RandomStringUtils
 import org.slf4j.LoggerFactory
 import java.lang.invoke.MethodHandles
+import java.util.*
 
 /**
  * Created by.
@@ -19,30 +21,37 @@ import java.lang.invoke.MethodHandles
 class MonitorTransportListener: TransportListener() {
   private lateinit var monitorTrace:MonitorTrace
   private var startTs = 0L
+  private val sessionId:String
+
+  init {
+    sessionId = UUID.randomUUID().toString()
+  }
+
   override fun close() {
   }
 
   override fun transportStart(opRequest: OpRequest) {
     startTs = System.currentTimeMillis()
+
     this.monitorTrace = MonitorTrace.fromOpRequest(opRequest)
   }
 
   override fun transportEnd() {
     val timestamp = System.currentTimeMillis()
     monitorTrace.opTime = timestamp - startTs
-    if(monitorTrace.opTime >= 10) {
+    if(monitorTrace.opTime >= 10) { //只记录 大于10ms 请求
 
       OpenTsDBClient.putDataAsync(
         METRICS,
-        Math.floorDiv(timestamp,1000),
+        timestamp,
         monitorTrace.opTime,
         mapOf("db" to monitorTrace.db,
           "collection" to monitorTrace.collectionName,
-          "op" to monitorTrace.op.name
+          "op" to monitorTrace.op.name,
+          "session" to sessionId
         )
       ).setHandler({
         if(it.succeeded()) {
-          logger.info(it.result())
         }else{
           logger.warn("send monitor trace to opTsDB error ${it.cause().message}",it.cause())
         }
