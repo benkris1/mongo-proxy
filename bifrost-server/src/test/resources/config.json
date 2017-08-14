@@ -1,7 +1,8 @@
 {
   "port":27017,
   "monitor":{
-    "enable":false,
-    "openTsDB":""
+    "enable":true,
+    "openTsDBHost":"10.10.10.168",
+    "openTsDBPort":10113
   }
 }

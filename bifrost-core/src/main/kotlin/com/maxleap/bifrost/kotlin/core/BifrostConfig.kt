@@ -14,16 +14,18 @@ object BifrostConfig {
 
   private var port:Int = 0
   private var monitorEnable:Boolean = false
-  private lateinit var openTsDB:String
-
+  private lateinit var openTsDBHost:String
+  private var openTsDBPort:Int = 80
 
   fun init(config:JsonObject) {
     port = config.getInteger("port")
     this.monitorEnable =config.getJsonObject("monitor").getBoolean("enable")
-    this.openTsDB = config.getJsonObject("monitor").getString("openTsDB")
+    this.openTsDBHost = config.getJsonObject("monitor").getString("openTsDBHost")
+    this.openTsDBPort = config.getJsonObject("monitor").getInteger("openTsDBPort")
   }
 
   fun port() = port
   fun monitorEnable() = monitorEnable
-  fun openTsDB() = openTsDB
+  fun openTsDBHost() =openTsDBHost
+  fun openTsDBPort() = openTsDBPort
 }

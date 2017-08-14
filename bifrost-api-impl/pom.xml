@@ -16,12 +16,12 @@
         <dependency>
             <groupId>com.maxleap</groupId>
             <artifactId>pandora-config-spi</artifactId>
-            <version>3.3.2.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
         </dependency>
+
     </dependencies>
 </project>

@@ -43,6 +43,12 @@ abstract class Swapper(
         this.close()
         mgoTransport.close()
       }
+      .onError {
+        /**
+         * TODO
+         * 要不要关闭
+         */
+      }
   }
 
   override fun close() {

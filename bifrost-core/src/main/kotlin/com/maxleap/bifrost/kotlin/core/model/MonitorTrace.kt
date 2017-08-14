@@ -15,7 +15,7 @@ import org.bson.Document
  * Date: 09/08/2017
  * Time: 3:31 PM
  * Email:benkris1@126.com
- * opTime 单位为纳秒
+ * opTime 单位为毫秒
  */
 data class MonitorTrace(val db: String, val collectionName: String, val op: TraceOp, var opTime: Long = 0L, val q: String) {
 
@@ -42,7 +42,8 @@ data class MonitorTrace(val db: String, val collectionName: String, val op: Trac
               }
               opRequest.query.containsKey("delete") -> {
                 collectionName = opRequest.query.getString("delete")
-                q = opRequest.query.get("deletes",Document::class.java).toJson()
+                var updDocs: List<*>? = opRequest.query.get("deletes",List::class.java)
+                q = Json.mapper.writeValueAsString(updDocs)
                 op = TraceOp.D
               }
               opRequest.query.containsKey("count") -> {
@@ -51,6 +52,7 @@ data class MonitorTrace(val db: String, val collectionName: String, val op: Trac
                 op = TraceOp.C
               }
               else -> {
+                collectionName = "cmd" //为了解决tsDb tag 不支持$
                 op = TraceOp.CMD
                 q = opRequest.query.toJson()
               }

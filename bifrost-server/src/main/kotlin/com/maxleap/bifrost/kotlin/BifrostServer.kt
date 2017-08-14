@@ -1,10 +1,12 @@
 package com.maxleap.bifrost.kotlin
 
+import com.maxleap.bifrost.kotlin.api.OpenTsDBClient
 import com.maxleap.bifrost.kotlin.api.PandoraSupport
 import com.maxleap.bifrost.kotlin.core.BifrostConfig
 import com.maxleap.bifrost.kotlin.core.BifrostSwapper
 import com.maxleap.bifrost.kotlin.core.ext.AsyncPool
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetServer
 import io.vertx.kotlin.core.net.NetServerOptions
@@ -30,6 +32,10 @@ class BifrostServer: AbstractVerticle() {
     super.start()
     BifrostConfig.init(config())
 
+    val options = HttpClientOptions()
+    options.connectTimeout = 1000
+    OpenTsDBClient.init(vertx.createHttpClient(options))
+
     bifrostServer = vertx.createNetServer(NetServerOptions(tcpNoDelay = true, usePooledBuffers = true))
     val netClient = vertx.createNetClient(NetClientOptions()
       .setReconnectAttempts(3)
@@ -38,7 +44,9 @@ class BifrostServer: AbstractVerticle() {
     )
 
     this.bifrostServer.connectHandler {
-      logger.info("accept connection from ${it.remoteAddress()}")
+      if (logger.isDebugEnabled) {
+        logger.info("accept connection from ${it.remoteAddress()}")
+      }
       it.pause()
       BifrostSwapper(it,netClient)
       it.resume()

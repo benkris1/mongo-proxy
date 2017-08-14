@@ -8,10 +8,10 @@ import com.maxleap.bifrost.kotlin.core.model.SASLModel
 import com.maxleap.bifrost.kotlin.core.utils.Do
 import com.mongodb.AuthenticationMechanism
 import com.mongodb.internal.authentication.NativeAuthenticationHelper
-import io.vertx.core.buffer.Buffer
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.StringUtils
 import org.bson.Document
+import org.bson.types.Binary
 import org.slf4j.LoggerFactory
 import java.lang.invoke.MethodHandles
 import java.security.InvalidKeyException
@@ -24,9 +24,6 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.xor
-import org.bson.types.Binary
-
-
 
 
 /**

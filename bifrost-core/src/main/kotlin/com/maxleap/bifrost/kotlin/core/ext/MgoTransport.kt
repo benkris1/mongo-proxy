@@ -258,9 +258,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
           val socket = it.result()
           socket.exceptionHandler { e ->
             run {
-              if (logger.isDebugEnabled) {
-                logger.debug("socket wrapper error.", it)
-              }
+              logger.warn(ExceptionUtils.getStackTrace(e))
               transportListeners.forEach {
                 it.exception(e)
               }
