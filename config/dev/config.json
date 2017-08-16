@@ -2,6 +2,7 @@
   "port":27017,
   "monitor":{
     "enable":true,
-    "openTsDB":""
+    "openTsDB":"",
+    "es":"http://10.10.10.168:9200"
   }
 }

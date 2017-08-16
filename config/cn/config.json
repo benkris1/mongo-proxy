@@ -3,6 +3,7 @@
   "monitor":{
     "enable":true,
     "openTsDBHost":"10.10.10.168",
-    "openTsDBPort":10113
+    "openTsDBPort":10113,
+    "es":"http://10.10.10.168:9200"
   }
 }
