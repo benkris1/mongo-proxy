@@ -15,6 +15,7 @@ import java.io.Serializable
 abstract  class TransportListener :Serializable {
   private var maxLength  = -1
   private var currentLength = -1
+  protected var startTs = 0L
   /**
    * 数据转发开始
    */

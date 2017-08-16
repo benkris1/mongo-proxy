@@ -1,0 +1,29 @@
+PUT _template/bifrost
+{
+  "template":   "bifrost-*",
+
+  "mappings": {
+    "_default_": {
+       "_all": {
+          "enabled": true,
+          "norms": false
+        },
+      "dynamic_templates": [
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text",
+              "fields": {
+                "raw": {
+                  "type":  "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -7,7 +7,8 @@ import com.maxleap.bifrost.kotlin.core.BifrostConfig
 import com.maxleap.bifrost.kotlin.core.MgoWrapperException
 import com.maxleap.bifrost.kotlin.core.TransportListener
 import com.maxleap.bifrost.kotlin.core.endpoint.DirectEndpoint
-import com.maxleap.bifrost.kotlin.core.impl.MonitorTransportListener
+import com.maxleap.bifrost.kotlin.core.impl.EsMonitorListener
+import com.maxleap.bifrost.kotlin.core.impl.TsMonitorListener
 import com.maxleap.bifrost.kotlin.core.model.*
 import com.maxleap.bifrost.kotlin.core.model.admin.cmd.GetLog
 import com.maxleap.bifrost.kotlin.core.model.admin.cmd.HostInfo
@@ -169,7 +170,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
           val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,
             serverAddress,
             netClient,{this.onClose(it)},
-            if (BifrostConfig.monitorEnable()) listOf(MonitorTransportListener()) else listOf()
+            if (BifrostConfig.monitorEnable()) listOf(EsMonitorListener()) else listOf()
           )
           serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
           netSocketWrapper_tmp

@@ -18,9 +18,9 @@ import java.util.*
  *把请求指标 发到openTsDb打点 方便监控性能指标
  */
 
-class MonitorTransportListener: TransportListener() {
+class TsMonitorListener : TransportListener() {
   private lateinit var monitorTrace:MonitorTrace
-  private var startTs = 0L
+
   private val sessionId:String
 
   init {

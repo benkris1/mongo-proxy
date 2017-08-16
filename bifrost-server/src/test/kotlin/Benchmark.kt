@@ -26,8 +26,8 @@ import com.mongodb.client.MongoCollection
 
 class Benchmark {
   //private val ADDRESS = "localhost"
-  private val ADDRESS_PROXY = "10.10.0.6"
-  //private val ADDRESS_PROXY = "localhost"
+  //private val ADDRESS_PROXY = "10.10.0.6"
+  private val ADDRESS_PROXY = "localhost"
   private val ADDRESS = "mongo.userdata.2"
   private val httpClient:OkHttpClient = OkHttpClient()
   @Before
