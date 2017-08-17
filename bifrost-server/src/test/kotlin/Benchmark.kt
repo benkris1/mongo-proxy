@@ -1,18 +1,12 @@
 import com.mongodb.MongoClient
-import com.mongodb.MongoClientOptions
 import com.mongodb.MongoCredential
 import com.mongodb.ServerAddress
 import okhttp3.OkHttpClient
 import org.junit.Before
 import org.junit.Test
-import java.util.ArrayList
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
-import org.apache.commons.collections4.MultiMapUtils.getCollection
-import com.mongodb.client.MongoCollection
-
-
-
 
 
 /**
@@ -26,8 +20,8 @@ import com.mongodb.client.MongoCollection
 
 class Benchmark {
   //private val ADDRESS = "localhost"
-  //private val ADDRESS_PROXY = "10.10.0.6"
-  private val ADDRESS_PROXY = "localhost"
+  private val ADDRESS_PROXY = "10.10.0.6"
+  //private val ADDRESS_PROXY = "localhost"
   private val ADDRESS = "mongo.userdata.2"
   private val httpClient:OkHttpClient = OkHttpClient()
   @Before
