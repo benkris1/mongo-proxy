@@ -10,12 +10,6 @@
         <module>bifrost-api-impl</module>
     </modules>
 
-    <parent>
-        <groupId>com.maxleap</groupId>
-        <artifactId>maxleap-parent</artifactId>
-        <version>20</version>
-    </parent>
-
     <groupId>com.maxleap</groupId>
     <artifactId>bifrost-kotlin</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -27,6 +21,12 @@
         <kotlin.compiler.languageVersion>1.1</kotlin.compiler.languageVersion>
         <kotlin.version>1.1.1</kotlin.version>
         <pandora.version>3.3.2.3</pandora.version>
+        <vertx.version>3.4.2</vertx.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <log4j2.version>2.8.1</log4j2.version>
+        <guava.version>19.0</guava.version>
+        <jackson.version>2.8.5</jackson.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
     <profiles>
@@ -45,9 +45,7 @@
             <properties>
                 <env>pro</env>
             </properties>
-
         </profile>
-
         <profile>
             <id>uat</id>
             <properties>
@@ -65,32 +63,13 @@
     </profiles>
 
     <dependencyManagement>
-
         <dependencies>
-            <dependency>
-                <groupId>com.maxleap</groupId>
-                <artifactId>ext-deps</artifactId>
-                <version>${maxleap-stack.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-          <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-lang-kotlin</artifactId>
-                <version>${vertx-stack.version}</version>
-            </dependency>
+            <!-- pandora support-->
             <dependency>
                 <groupId>com.maxleap</groupId>
                 <artifactId>pandora-config-spi</artifactId>
                 <version>${pandora.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>3.6.0</version>
-            </dependency>
-
             <!-- apache commons deps -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -132,6 +111,84 @@
                 <artifactId>jest</artifactId>
                 <version>2.0.0</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-kotlin</artifactId>
+                <version>2.9.0.pr2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-core</artifactId>
+                <version>${vertx.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-web</artifactId>
+                <version>${vertx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-lang-kotlin</artifactId>
+                <version>${vertx.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-unit</artifactId>
+                <version>${vertx.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -139,6 +196,18 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-unit</artifactId>
         </dependency>
     </dependencies>
     <build>

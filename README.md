@@ -13,7 +13,7 @@ Bifrost 是基于vertx3 开发的mongo代理服务器，使用kotlin编写。
 ##### 项目原理
 
 - 通过解析 [mongo 协议](https://docs.mongodb.com/v3.0/reference/mongodb-wire-protocol/)	实现 [mongo SCRAM](https://www.mongodb.com/blog/post/improved-password-based-authentication-mongodb-30-scram-explained-part-1?jmp=docs&_ga=2.113628933.303872216.1498450526-215400923.1486350235) 认证协议，达到开发者访问mongo的安全隔离
-- 通过Pandora 获取db和cluster之间的关系
+- 通过实现Namespace 获取db和cluster之间的关系
 - 通过拦截mongo协议请求，实现mongo慢查询监控
 
 
