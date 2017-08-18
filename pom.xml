@@ -67,14 +67,6 @@
     <dependencyManagement>
 
         <dependencies>
-            <dependency>
-                <groupId>com.maxleap</groupId>
-                <artifactId>ext-deps</artifactId>
-                <version>${maxleap-stack.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
           <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-lang-kotlin</artifactId>

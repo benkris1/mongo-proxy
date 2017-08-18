@@ -1,5 +1,6 @@
 {
-  "port":27017,
+  "tcpPort":27017,
+  "httpPort":8500,
   "monitor":{
     "enable":true,
     "openTsDBHost":"10.10.10.168",

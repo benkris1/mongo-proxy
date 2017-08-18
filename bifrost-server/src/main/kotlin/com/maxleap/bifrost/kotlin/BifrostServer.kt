@@ -9,6 +9,8 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.net.NetClientOptions
 import io.vertx.core.net.NetServer
+import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.core.net.NetServerOptions
 import org.slf4j.LoggerFactory
 import java.lang.invoke.MethodHandles
@@ -35,7 +37,10 @@ class BifrostServer: AbstractVerticle() {
     val options = HttpClientOptions()
     options.connectTimeout = 1000
     OpenTsDBClient.init(vertx.createHttpClient(options))
-
+    AsyncPool.init(vertx)
+    /**
+     * start tcp server
+     */
     bifrostServer = vertx.createNetServer(NetServerOptions(tcpNoDelay = true, usePooledBuffers = true))
     val netClient = vertx.createNetClient(NetClientOptions()
       .setReconnectAttempts(3)
@@ -51,22 +56,38 @@ class BifrostServer: AbstractVerticle() {
       BifrostSwapper(it,netClient)
       it.resume()
     }
-    AsyncPool.init(vertx)
-    this.bifrostServer.listen(BifrostConfig.port(), {
+
+    this.bifrostServer.listen(BifrostConfig.tcpPort(), {
       when (it.succeeded()) {
         true -> logger.info("\n  | |      ___    __ _    | '_ \\  / __|    | |     ___    _  _    __| |  \n" +
           "  | |__   / -_)  / _` |   | .__/ | (__     | |    / _ \\  | +| |  / _` |  \n" +
           "  |____|  \\___|  \\__,_|   |_|__   \\___|   _|_|_   \\___/   \\_,_|  \\__,_|  \n" +
           "_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"|_|\"\"\"\"\"| \n" +
           "\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-'\"`-0-0-' " +
-          "\nbifrost server start at port:${BifrostConfig.port()} success! \n")
+          "\nstart bifrost tcp server success listening for ${BifrostConfig.tcpPort()}\n")
         else -> {
-          logger.error("bifrost server start failed!!!", it.cause())
+          logger.error("start bifrost tcp server failed!!!", it.cause())
           System.exit(2)
         }
       }
     })
 
+    /**
+     * start http server
+     */
+    var httpServer = vertx.createHttpServer()
+    var router = Router.router(vertx)
+    router.route().handler(BodyHandler.create())
+    router.get("/ping").blockingHandler {  // health check
+      it.response().setStatusCode(200).end("pong")
+    }
+    httpServer.requestHandler({ router.accept(it) }).listen(BifrostConfig.httpPort(), {
+      if (it.succeeded()) {
+        logger.info("start bifrost http server success listening for ${BifrostConfig.httpPort()}")
+      } else {
+        logger.error("start bifrost http server failed!!!",it.cause())
+      }
+    })
   }
 
 
