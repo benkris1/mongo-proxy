@@ -9,7 +9,8 @@ import com.mongodb.ServerAddress
  * Date: 02/08/2017
  * Time: 3:49 PM
  * Email:benkris1@126.com
- *
+ * mongo address endpoint
+ * @see PandoraNamespace
  */
 interface Namespace {
 
