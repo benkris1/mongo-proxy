@@ -6,7 +6,7 @@
       <PatternLayout pattern="[%d{yyyy:MM:DD HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
       <DefaultRolloverStrategy max="16"/>
       <Policies>
-        <SizeBasedTriggeringPolicy size="10 MB"/>
+        <SizeBasedTriggeringPolicy size="50 MB"/>
       </Policies>
     </RollingFile>
 
