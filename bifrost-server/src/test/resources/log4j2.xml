@@ -5,6 +5,7 @@
   </Appenders>
 
   <Loggers>
+    <logger name="org.mongodb.driver" level="ERROR"></logger>
     <Root level="INFO">
       <AppenderRef ref="Console"/>
     </Root>

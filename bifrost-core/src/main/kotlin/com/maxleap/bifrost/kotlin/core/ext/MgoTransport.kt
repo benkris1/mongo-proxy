@@ -8,7 +8,6 @@ import com.maxleap.bifrost.kotlin.core.MgoWrapperException
 import com.maxleap.bifrost.kotlin.core.TransportListener
 import com.maxleap.bifrost.kotlin.core.endpoint.DirectEndpoint
 import com.maxleap.bifrost.kotlin.core.impl.EsMonitorListener
-import com.maxleap.bifrost.kotlin.core.impl.TsMonitorListener
 import com.maxleap.bifrost.kotlin.core.model.*
 import com.maxleap.bifrost.kotlin.core.model.admin.cmd.GetLog
 import com.maxleap.bifrost.kotlin.core.model.admin.cmd.HostInfo
@@ -208,14 +207,14 @@ class MgoTransport(val endpoint: DirectEndpoint,
             }
           }
         }catch (throwable :Throwable) {
-          logger.error("can't get primary from ${serverAddress},error msg:${throwable.message}",throwable)
+          logger.warn("can't get primary from ${it},error msg:${throwable.message}",throwable)
         }finally {
           mgoClient?.let {
             it.close()
           }
         }
       }
-      throw MgoWrapperException("can't get primary from ${serverAddress}")
+      throw MgoWrapperException("can't get primary from cluster ${serverAddress}")
     }
 
     /**
