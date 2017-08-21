@@ -11,7 +11,12 @@ ADD lib/ $VERTX_HOME/lib/
 ADD log4j2.xml $VERTX_HOME/conf
 ADD zookeeper.json $VERTX_HOME/conf
 ADD config.json /opt/bifrost/
-ADD start.sh /opt/bifrost/
 
 WORKDIR /opt/bifrost
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT [\
+"vertx",\
+"run",\
+"java-hk2:com.maxleap.bifrost.kotlin.BifrostServer",\
+"--conf",\
+"config.json"\
+]

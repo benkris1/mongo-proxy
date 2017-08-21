@@ -26,7 +26,6 @@
         <include>config.json</include>
         <include>log4j2.xml</include>
         <include>zookeeper.json</include>
-        <include>start.sh</include>
       </includes>
     </fileSet>
   </fileSets>
