@@ -1,7 +1,6 @@
 package com.maxleap.bifrost.kotlin
 
 import com.maxleap.bifrost.kotlin.api.OpenTsDBClient
-import com.maxleap.bifrost.kotlin.api.PandoraSupport
 import com.maxleap.bifrost.kotlin.core.BifrostConfig
 import com.maxleap.bifrost.kotlin.core.BifrostSwapper
 import com.maxleap.bifrost.kotlin.core.ext.AsyncPool
@@ -27,9 +26,6 @@ import java.lang.invoke.MethodHandles
 class BifrostServer: AbstractVerticle() {
   private lateinit var bifrostServer:NetServer
 
-  init {
-    PandoraSupport
-  }
   override fun start() {
     super.start()
     BifrostConfig.init(config())

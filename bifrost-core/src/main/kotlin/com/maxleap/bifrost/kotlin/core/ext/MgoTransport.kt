@@ -2,7 +2,7 @@ package com.maxleap.bifrost.kotlin.core.ext
 
 import com.maxleap.bifrost.kotlin.api.Namespace
 import com.maxleap.bifrost.kotlin.api.NamespaceFactory
-import com.maxleap.bifrost.kotlin.api.impl.PandoraNamespaceFactory
+import com.maxleap.bifrost.kotlin.api.impl.DefaultNamespaceFactory
 import com.maxleap.bifrost.kotlin.core.BifrostConfig
 import com.maxleap.bifrost.kotlin.core.MgoWrapperException
 import com.maxleap.bifrost.kotlin.core.TransportListener
@@ -148,7 +148,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
     private val mgoNamespaceFactory :NamespaceFactory
 
     init {
-      mgoNamespaceFactory = PandoraNamespaceFactory()
+      mgoNamespaceFactory = DefaultNamespaceFactory()
     }
 
     fun createSocketWrapper(collectionName: String):Future<NetSocketWrapper> {

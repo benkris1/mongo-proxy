@@ -155,8 +155,12 @@ class SASLAuth(private val endpoint: Endpoint,
     val nonce = "r=" + combinedNonce
     val clientFinalMessageWithoutProof = channelBinding + "," + nonce
 
+    /**
+     * TODO
+     * you can implement your security manager
+     */
     val saltedPassword = hi(
-      NativeAuthenticationHelper.createAuthenticationHash("maxleap", "maxleap10086".toCharArray()),
+      NativeAuthenticationHelper.createAuthenticationHash("bifrost", "bifrost".toCharArray()),
       this.base64Codec.decode(salt),
       DEFAULT_ITERATE
     )

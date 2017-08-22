@@ -5,7 +5,7 @@
     <parent>
         <artifactId>bifrost-kotlin</artifactId>
         <groupId>com.maxleap</groupId>
-        <version>1.0</version>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,11 +13,6 @@
 
 
     <dependencies>
-        <dependency>
-            <groupId>com.maxleap</groupId>
-            <artifactId>pandora-config-spi</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>

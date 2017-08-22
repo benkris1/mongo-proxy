@@ -1,22 +1,21 @@
-FROM 10.10.10.160:8010/maxleap/base:${maxleap-stack.version}
+FROM openjdk:8-jre-alpine
 MAINTAINER Ben.Ma <cma@maxleap.com>
 
 #----------------------------Copy 项目目录到容器里--------------------------------------------
 
-RUN \
-mkdir -p /opt/bifrost
 
-#覆盖vert.x 相关配置
-ADD lib/ $VERTX_HOME/lib/
-ADD log4j2.xml $VERTX_HOME/conf
-ADD zookeeper.json $VERTX_HOME/conf
-ADD config.json /opt/bifrost/
+ENV BIFROST_HOME "/opt/bifrost"
 
-WORKDIR /opt/bifrost
+
+WORKDIR $BIFROST_HOME
+
 ENTRYPOINT [\
-"vertx",\
-"run",\
-"java-hk2:com.maxleap.bifrost.kotlin.BifrostServer",\
-"--conf",\
-"config.json"\
+"java",\
+"-XX:+UseG1GC",\
+"-Djava.net.preferIPv4Stack=true",\
+"-Dlog4j.configurationFile=file:log4j2.xml",\
+"-jar",\
+"bifrost-server-jar-with-dependencies.jar"\
 ]
+
+ADD ./ ./

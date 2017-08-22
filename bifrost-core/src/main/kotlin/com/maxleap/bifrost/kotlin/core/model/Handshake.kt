@@ -41,7 +41,7 @@ data class Handshake(val op: OpBase,val remoteAddress:String){
   class IsMaster(val header: MsgHeader):Buffered{
     override fun toBuffer(): Buffer {
       val document = Document("ok", true)
-      document.put("setName", "Leapcloud")
+      document.put("setName", "Bifrost")
       document.put("setVersion", 75)
       //document.put("primary", "localhost:27017")
       //document.put("me", "localhost:27017")
@@ -97,7 +97,7 @@ data class Handshake(val op: OpBase,val remoteAddress:String){
   class ReplSetGetStatus(val header: MsgHeader):Buffered {
     override fun toBuffer(): Buffer {
       val doc = Document("ok", 1.0)
-      doc.put("set", "Leapcloud")
+      doc.put("set", "Bifrost")
       doc.put("date",BsonDateTime(System.currentTimeMillis()))
       doc.put("myState",1)
       doc.put("term",-1)

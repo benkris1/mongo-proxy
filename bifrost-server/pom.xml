@@ -5,7 +5,7 @@
     <parent>
         <artifactId>bifrost-kotlin</artifactId>
         <groupId>com.maxleap</groupId>
-        <version>1.0</version>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -71,19 +71,20 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.13</version>
                 <configuration>
-                    <imageName>${docker.repository}/maxleap/${project.artifactId}:${project.version}_${env}</imageName>
+                    <imageName>${docker.repository}/maxleap/${project.artifactId}:${project.version}</imageName>
                     <dockerDirectory>${project.build.directory}/classes/docker</dockerDirectory>
-                    <registryUrl>https://${docker.repository}/</registryUrl>
                     <forceTags>true</forceTags>
                     <imageTags>
                     </imageTags>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
-                            <directory>${project.build.directory}/${project.build.finalName}</directory>
-                            <include>*.*</include>
-                            <include>**/*</include>
+                            <directory>${project.build.directory}</directory>
+                            <includes>
+                                <include>${project.artifactId}-jar-with-dependencies.jar</include>
+                            </includes>
                         </resource>
                     </resources>
                 </configuration>
@@ -92,25 +93,6 @@
                         <phase>deploy</phase>
                         <goals>
                             <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptors>
-                        <descriptor>src/main/assembly/dir.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>assemble</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -138,6 +120,34 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.maxleap.bifrost.kotlin.Bootstrap</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptors>
+                        <descriptor>src/main/assembly/dir.xml</descriptor>
+                    </descriptors>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>${project.artifactId}</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

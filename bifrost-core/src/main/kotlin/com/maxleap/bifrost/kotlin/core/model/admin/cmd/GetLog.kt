@@ -25,7 +25,7 @@ data class GetLog(val op:OpBase):Buffered {
     document.put("totalLinesWritten", 9)
     var logs = Lists.newArrayList<BsonString>()
     logs.add(BsonString("Welcome to join Leapcloud, I'm Bifrost and my job is access MongoDB. enjoy it."))
-    logs.add(BsonString("If you have any problem or advice, please contact us. cma@maxleap.com"))
+    logs.add(BsonString("If you have any problem or advice, please contact us. benkris1@126.com"))
     val logo = " __       _______     ___      .______     ______  __        ______    __    __   _______  \n" +
       "|  |     |   ____|   /   \\     |   _  \\   /      ||  |      /  __  \\  |  |  |  | |       \\ \n" +
       "|  |     |  |__     /  ^  \\    |  |_)  | |  ,----'|  |     |  |  |  | |  |  |  | |  .--.  |\n" +
