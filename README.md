@@ -21,10 +21,10 @@ Bifrost 是基于vertx3 开发的mongo代理服务器，使用kotlin编写。
 ##### 部署方法
 
 本项目默认会自动打包成docker容器,images名称以bifrost-server:version的形式存放在registry里.
-通过docker命令`docker run --name bifrost-kotlin --net=host -d 10.10.10.160:8010/maxleap/bifrost-server:1.0.0-SNAPSHOT` 默认服务占用`271017`
+通过docker命令`docker run --name bifrost-kotlin --net=host -d bifrost-server:0.0.1-SNAPSHOT` 默认服务占用`271017`
 
 ```shell
-$ mvn clean deploy -Dmaven.test.skip=true -DpushImage -Pcn  
+$ mvn clean deploy -Dmaven.test.skip=true  
 ```
 
 
@@ -39,7 +39,7 @@ $ ./mongo 10.10.0.6:27017/geo_blocks -u "username" -p "password" --authenticatio
 
 ![term](http://csqncdn.maxleap.cn/NTgwZDdiZTQ3ZTJjNzkwMDA3NDVhOWQ3/qn-0622b7fb-c85a-41b1-be63-1fca64bd752c.MOV)
 
-支持标准mongo驱动程序访问。
+支持标准mongo驱动程序访问。默认用户名&密码:bifrost/bifrost
 
 ##### 监控
 
@@ -47,5 +47,5 @@ bifrost-kotlin 会记录操作耗时大于10ms的请求，使用Es或者OpenTsDB
 
 ![term](http://csqncdn.maxleap.cn/NTgwZDdiZTQ3ZTJjNzkwMDA3NDVhOWQ3/qn-59d39d79-5b87-40b3-96df-382f39124582.MOV)
 
-[grafana](http://grafana.las/dashboard/db/mongo-slow-op?orgId=1&from=now-1h&to=now)
+
 
