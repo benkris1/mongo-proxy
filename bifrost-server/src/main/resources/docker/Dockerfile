@@ -4,14 +4,19 @@ MAINTAINER Ben.Ma <cma@maxleap.com>
 #----------------------------Copy 项目目录到容器里--------------------------------------------
 
 RUN \
-mkdir -p /opt/bifrost-kotlin
+mkdir -p /opt/bifrost
 
 #覆盖vert.x 相关配置
 ADD lib/ $VERTX_HOME/lib/
 ADD log4j2.xml $VERTX_HOME/conf
 ADD zookeeper.json $VERTX_HOME/conf
-ADD config.json /opt/bifrost-kotlin/
-ADD start.sh /opt/bifrost-kotlin/
+ADD config.json /opt/bifrost/
 
-WORKDIR /opt/bifrost-kotlin
-ENTRYPOINT ["./start.sh"]
+WORKDIR /opt/bifrost
+ENTRYPOINT [\
+"vertx",\
+"run",\
+"java-hk2:com.maxleap.bifrost.kotlin.BifrostServer",\
+"--conf",\
+"config.json"\
+]

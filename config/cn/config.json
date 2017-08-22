@@ -1,9 +1,10 @@
 {
-  "port":27017,
+  "tcpPort":27017,
+  "httpPort":8500,
   "monitor":{
     "enable":true,
-    "openTsDBHost":"10.10.10.168",
-    "openTsDBPort":10113,
-    "es":"http://10.10.10.168:9200"
+    "openTsDBHost":"internal-opentsdb-192355073.cn-north-1.elb.amazonaws.com.cn",
+    "openTsDBPort":4242,
+    "es":"http://10.20.15.20:9200"
   }
 }

@@ -12,21 +12,24 @@ import io.vertx.core.json.JsonObject
  */
 object BifrostConfig {
 
-  private var port:Int = 0
+  private var tcpPort:Int = 27017
+  private var httpPort:Int = 8500
   private var monitorEnable:Boolean = false
   private lateinit var openTsDBHost:String
   private var openTsDBPort:Int = 80
   private lateinit var es :String
 
   fun init(config:JsonObject) {
-    port = config.getInteger("port")
+    tcpPort = config.getInteger("tcpPort")
+    httpPort = config.getInteger("httpPort")
     this.monitorEnable =config.getJsonObject("monitor").getBoolean("enable")
     this.openTsDBHost = config.getJsonObject("monitor").getString("openTsDBHost")
     this.openTsDBPort = config.getJsonObject("monitor").getInteger("openTsDBPort")
     this.es = config.getJsonObject("monitor").getString("es")
   }
 
-  fun port() = port
+  fun tcpPort() = tcpPort
+  fun httpPort() = httpPort
   fun monitorEnable() = monitorEnable
   fun openTsDBHost() =openTsDBHost
   fun openTsDBPort() = openTsDBPort
