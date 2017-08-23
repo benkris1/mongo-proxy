@@ -196,9 +196,12 @@ class MgoTransport(val endpoint: DirectEndpoint,
           mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(10).build())
           val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
           val primary = runCommand.getString("primary")
+          val isMaster = runCommand.getBoolean("ismaster")
           if(null != primary) {
             val name = primary.split(":")
             return@findMaster ServerAddress(name[0],Integer.valueOf(name[1]))
+          }else if(isMaster){
+            return@findMaster it
           }else{
             val msg = runCommand.getString("msg")
             if(StringUtils.equals(msg,"isdbgrid")) {
