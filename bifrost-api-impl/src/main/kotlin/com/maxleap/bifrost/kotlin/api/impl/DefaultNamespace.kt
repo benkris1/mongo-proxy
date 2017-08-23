@@ -29,14 +29,14 @@ class DefaultNamespace(var onStatusChange:(status:NamespaceStatus) -> Unit ? = {
    * TODO
    * implement by yourself
    */
-  override fun getAddressAsString() = "mongo.userdata.2:27013"
+  override fun getAddressAsString() = "localhost:27017"
 
   /**
    * TODO
    * implement by yourself
    */
   override fun serveAddress(): List<ServerAddress> {
-     return  listOf(ServerAddress("mongo.userdata.2",27013))
+     return  listOf(ServerAddress("localhost",27017))
   }
 
   override fun onStatusChange(onChange: (onStatusChange: NamespaceStatus) -> Unit) {

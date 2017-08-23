@@ -1,5 +1,5 @@
 {
-  "tcpPort":27017,
+  "tcpPort":27018,
   "httpPort":8500,
   "monitor":{
     "enable":true,

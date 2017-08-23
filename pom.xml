@@ -33,7 +33,6 @@
             <properties>
                 <env>dev</env>
                 <nexus.host>10.10.10.137:8081/nexus</nexus.host>
-                <docker.repository>10.10.10.160:8010</docker.repository>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
