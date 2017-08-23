@@ -2,7 +2,7 @@
   "tcpPort":27017,
   "httpPort":8500,
   "monitor":{
-    "enable":true,
+    "enable":false,
     "openTsDBHost":"10.10.10.168",
     "openTsDBPort":10113,
     "es":"http://10.10.10.168:9200"
