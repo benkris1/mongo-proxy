@@ -21,7 +21,8 @@ class ChunkFliper(private val parse: RecordParser,
                   private val remoteAddress: String,
                   private val onHandshake: Callback<Handshake>,
                   private val onSASL: Callback<SASLModel>,
-                  private val onChunk:Callback<Chunk>
+                  private val onChunk:Callback<Chunk>,
+                  private val onError:Callback<Throwable>
 ) : Handler<Buffer> {
   private var state = ReadStat.CHUNK_HEADER_BSC
   private var length = 0
@@ -63,6 +64,12 @@ class ChunkFliper(private val parse: RecordParser,
             val opGetMore = OpGetMore.fromBuffer(msgHeader, buffer)
             this.emit(Chunk(opGetMore,buffer))
           }
+       /*   RequestType.OP_COMMAND -> {
+            *//**
+             * TODO will support in future 3.4.x
+             *//*
+            throw UnsupportedOperationException("un support operation:${msgHeader.type}")
+          }*/
           RequestType.OP_KILL_CURSORS -> {
             val opKillCursors = OpKillCursors.fromBuffer(msgHeader, buffer)
             /**
@@ -74,8 +81,7 @@ class ChunkFliper(private val parse: RecordParser,
             /**
              * TODO
              */
-            logger.error("un support operation:${msgHeader.type}")
-            throw UnsupportedOperationException("un support operation:${msgHeader.type}")
+            onError.invoke(UnsupportedOperationException("un support operation:${msgHeader.type}"))
           }
 
         }
