@@ -20,8 +20,8 @@ enum class RequestType(val code: Int) {
   OP_QUERY(2004),
   OP_GET_MORE(2005),
   OP_DELETE(2006),
-  OP_KILL_CURSORS(2007);
-
+  OP_KILL_CURSORS(2007),
+  OP_COMMAND(2010);
   companion object {
 
     @JsonCreator

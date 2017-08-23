@@ -46,8 +46,10 @@ abstract class Swapper(
       .onError {
         /**
          * TODO
-         * 要不要关闭
          */
+        logger.error(it.message,it)
+        this.close()
+        mgoTransport.close()
       }
   }
 

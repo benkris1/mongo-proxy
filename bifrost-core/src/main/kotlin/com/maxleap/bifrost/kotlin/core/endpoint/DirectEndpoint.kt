@@ -21,7 +21,7 @@ class DirectEndpoint(private val socket: NetSocket): Endpoint() {
 
   init {
     val parser = RecordParser.newFixed(4, null)
-    val fliper = ChunkFliper(parser,socket.remoteAddress().toString(), { this.onHandshake?.invoke(it) },{this.onSASL?.invoke(it)},{this.onChunk?.invoke(it)})
+    val fliper = ChunkFliper(parser,socket.remoteAddress().toString(), { this.onHandshake?.invoke(it) },{this.onSASL?.invoke(it)},{this.onChunk?.invoke(it)},{this.onError?.invoke(it)})
     parser.setOutput(fliper)
     this.socket.handler(parser)
     this.socket.closeHandler {

@@ -28,13 +28,13 @@ class OpTest {
   private val ADDRESS = "localhost"
   //private val ADDRESS = "10.10.0.6"
   private lateinit var mgoClient:MongoClient
-  private val dbName = "geo_blocks"
+  private val dbName = "mydb"
   private val collectionName = "bifrost_kotlin"
   @Before
   fun before(){
     val mgoCredentials = ArrayList<MongoCredential>()
-    mgoCredentials.add(MongoCredential.createCredential("maxleap", dbName, "maxleap10086".toCharArray()))
-    this.mgoClient = MongoClient(ServerAddress(ADDRESS, 27017), mgoCredentials)
+    mgoCredentials.add(MongoCredential.createCredential("bifrost", dbName, "bifrost".toCharArray()))
+    this.mgoClient = MongoClient(ServerAddress(ADDRESS, 27018), mgoCredentials)
   }
 
 
