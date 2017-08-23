@@ -32,18 +32,10 @@
             <id>dev</id>
             <properties>
                 <env>dev</env>
-                <nexus.host>10.10.10.137:8081/nexus</nexus.host>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>snapshots</id>
-                    <name>Internal Snapshots</name>
-                    <url>http://${nexus.host}/content/repositories/snapshots</url>
-                </snapshotRepository>
-            </distributionManagement>
         </profile>
     </profiles>
 
@@ -266,30 +258,4 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>public</id>
-            <name>Public Repositories</name>
-            <url>http://${nexus.host}/content/groups/public</url>
-        </repository>
-        <repository>
-            <id>releases</id>
-            <name>Internal Releases</name>
-            <url>http://${nexus.host}/content/repositories/releases</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>public</id>
-            <name>Public Repositories</name>
-            <url>http://${nexus.host}/content/groups/public</url>
-        </pluginRepository>
-    </pluginRepositories>
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <name>Internal Releases</name>
-            <url>http://${nexus.host}/content/repositories/releases</url>
-        </repository>
-    </distributionManagement>
 </project>

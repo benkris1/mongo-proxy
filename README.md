@@ -24,17 +24,19 @@ Bifrost 是基于vertx3 开发的mongo代理服务器，使用kotlin编写。
 通过docker命令`docker run --name bifrost-kotlin --net=host -d bifrost-server:0.0.1-SNAPSHOT` 默认服务占用`271017`
 
 ```shell
-$ mvn clean deploy -Dmaven.test.skip=true  
+$ mvn clean install -Dmaven.test.skip=true  
 ```
 
 
 
 ##### 开始使用
 
-使用mongo终端登录
+1.首先启动`bifrost`服务，可以使用docker启动或者在项目中执行Bootstrap.kt。 默认占用端口为`27017`,可以自行更改配置信息 `config.json`	。用户需要配置代理mongo 服务器地址，本项目是写死的，在`DefaultNamespace.kt`中，可以根据自己的业务实现。**目前仅支持mongo3.0版本**
+
+2.模拟mongo终端登录
 
 ```shell
-$ ./mongo 10.10.0.6:27017/geo_blocks -u "username" -p "password" --authenticationDatabase "geo_blocks" --authenticationMechanism SCRAM-SHA-1
+$ ./mongo localhost:27017/geo_blocks -u "username" -p "password" --authenticationDatabase "geo_blocks" --authenticationMechanism SCRAM-SHA-1
 ```
 
 ![term](http://csqncdn.maxleap.cn/NTgwZDdiZTQ3ZTJjNzkwMDA3NDVhOWQ3/qn-0622b7fb-c85a-41b1-be63-1fca64bd752c.MOV)
