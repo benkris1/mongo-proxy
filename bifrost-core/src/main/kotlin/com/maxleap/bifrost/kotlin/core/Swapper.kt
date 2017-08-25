@@ -48,8 +48,8 @@ abstract class Swapper(
          * TODO
          */
         logger.error(it.message,it)
-        this.close()
-        mgoTransport.close()
+        //this.close()
+        //mgoTransport.close()
       }
   }
 

@@ -6,15 +6,15 @@
       <PatternLayout pattern="[%d{yyyy:MM:dd HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
       <DefaultRolloverStrategy max="16"/>
       <Policies>
-        <SizeBasedTriggeringPolicy size="50 MB"/>
+        <SizeBasedTriggeringPolicy size="30 MB"/>
       </Policies>
     </RollingFile>
 
     <RollingFile name="RollingJsonFile" fileName="log/json/bifrost-json.log" filePattern="log/json/bifrost-json.%i">
       <MaxLeapJsonLayout/>
-      <DefaultRolloverStrategy max="2"/>
+      <DefaultRolloverStrategy max="10"/>
       <Policies>
-        <SizeBasedTriggeringPolicy size="50 MB"/>
+        <SizeBasedTriggeringPolicy size="30 MB"/>
       </Policies>
     </RollingFile>
 
@@ -22,7 +22,7 @@
 
 
   <Loggers>
-    <logger name="org.mongodb.driver" level="ERROR"></logger>
+    <logger name="org.mongodb.driver" level="WARN"></logger>
     <Root level="INFO">
       <AppenderRef ref="RollingFile"/>
       <AppenderRef ref="RollingJsonFile"/>

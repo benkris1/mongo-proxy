@@ -46,41 +46,44 @@ import java.util.concurrent.atomic.AtomicBoolean
 class MgoTransport(val endpoint: DirectEndpoint,
                    val netClient: NetClient,
                    val failed: Do? = null
-                   ):Closeable{
+) : Closeable {
 
   private val isClosed = AtomicBoolean(false)
-  private val netSocketWrapperFactory:NetSocketWrapperFactory
+  private val netSocketWrapperFactory: NetSocketWrapperFactory
 
   init {
     netSocketWrapperFactory = NetSocketWrapperFactory()
   }
 
-  fun transport(chunk:Chunk) {
+  fun transport(chunk: Chunk) {
     val opRequest = chunk.opRequest
     /**
      * TODO 需要校验那些admin 命令不支持
      *
      */
     try {
-      filterCmd(opRequest)?.let { this.endpoint.write(it.toBuffer());return@transport}
+      filterCmd(opRequest)?.let { this.endpoint.write(it.toBuffer());return@transport }
 
       netSocketWrapperFactory.getSocketWrapper(opRequest.nameSpace.databaseName)?.let {
-        swapper(opRequest,chunk.swapperBuffer(),it)
-      }?:netSocketWrapperFactory.createSocketWrapper(opRequest.nameSpace.databaseName)
-        .compose{
-          it.connect()
+        swapper(opRequest, chunk.swapperBuffer(), it)
+      } ?: netSocketWrapperFactory.createSocketWrapper(opRequest.nameSpace.databaseName)
+        .compose { netSocketWrapper ->
+          run {
+            netSocketWrapper.socket()?.let { Future.succeededFuture(netSocketWrapper) }
+              ?: netSocketWrapper.connect()
+          }
         }
-        .map{
-          swapper(opRequest,chunk.swapperBuffer(),it)
+        .map {
+          swapper(opRequest, chunk.swapperBuffer(), it)
         }
-        .otherwise{
-          failed?.invoke()
+        .otherwise {
+          //failed?.invoke()
           logger.error(ExceptionUtils.getStackTrace(it))
           failResponse(opRequest, it.message ?: "can't connect mgo server for ${opRequest.nameSpace}")
         }
-    }catch (throwable:Throwable){
-      failed?.invoke()
-      failResponse(opRequest,throwable.message?:"can't swapper mgo server for ${opRequest.nameSpace}")
+    } catch (throwable: Throwable) {
+      //failed?.invoke()
+      failResponse(opRequest, throwable.message ?: "can't swapper mgo server for ${opRequest.nameSpace}")
     }
 
   }
@@ -88,72 +91,73 @@ class MgoTransport(val endpoint: DirectEndpoint,
   /**
    * 过滤admin cmd
    */
-  private fun filterCmd(request: OpRequest):Buffered?{
-    when(request.nameSpace.databaseName) {
-        ADMIN_DB -> {
-          if(request is OpQuery && request.nameSpace.collectionName.equals("\$cmd")) {
-            when {
-              request.query.containsKey(GET_LOG_CMD) -> {
-                  return GetLog(request)
-              }
-              request.query.containsKey(HOST_INFO) -> {
-                return HostInfo(opRequest = request)
-              }
-              else -> {
-                throw MgoWrapperException("not support admin command ${request.nameSpace.collectionName}")
-              }
+  private fun filterCmd(request: OpRequest): Buffered? {
+    when (request.nameSpace.databaseName) {
+      ADMIN_DB -> {
+        if (request is OpQuery && request.nameSpace.collectionName.equals("\$cmd")) {
+          when {
+            request.query.containsKey(GET_LOG_CMD) -> {
+              return GetLog(request)
             }
-          }else {
-            throw MgoWrapperException("not support admin command ${request.nameSpace.collectionName}")
+            request.query.containsKey(HOST_INFO) -> {
+              return HostInfo(opRequest = request)
+            }
+            else -> {
+              throw MgoWrapperException("not support admin command ${request.nameSpace.collectionName}")
+            }
           }
+        } else {
+          throw MgoWrapperException("not support admin command ${request.nameSpace.collectionName}")
         }
-        LOCAL_DB -> {
-          throw MgoWrapperException("you have no permission to access the 'local' database ")
-        }
+      }
+      LOCAL_DB -> {
+        throw MgoWrapperException("you have no permission to access the 'local' database ")
+      }
     }
     return null
   }
+
   override fun close() {
     synchronized(this) {
-      this.isClosed.set(true)
-      this.netSocketWrapperFactory.close()
+      if (!this.isClosed.getAndSet(true))
+        this.netSocketWrapperFactory.close()
     }
   }
 
-  private fun swapper(opRequest: OpRequest,buffer: Buffer,netSocketWrapper: NetSocketWrapper) {
-    when(netSocketWrapper.dataSourceStatus) {
+  private fun swapper(opRequest: OpRequest, buffer: Buffer, netSocketWrapper: NetSocketWrapper) {
+    when (netSocketWrapper.dataSourceStatus) {
       NamespaceStatus.ENABLE -> {
-        netSocketWrapper.write(opRequest,buffer)
+        netSocketWrapper.write(opRequest, buffer)
       }
       NamespaceStatus.READONLY -> {
-        when(opRequest) {
-          is OpQuery -> netSocketWrapper.write(opRequest,buffer)
-          is OpGetMore -> netSocketWrapper.write(opRequest,buffer)
+        when (opRequest) {
+          is OpQuery -> netSocketWrapper.write(opRequest, buffer)
+          is OpGetMore -> netSocketWrapper.write(opRequest, buffer)
           else -> {
-             //TODO 不需要返回
+            //TODO 不需要返回
           }
         }
       }
     }
   }
 
-  private fun failResponse(op: OpBase,msg:String): Unit {
+  private fun failResponse(op: OpBase, msg: String): Unit {
 
-    this.endpoint.write(Reply.errorReply(op.msgHeader,10086,msg).toBuffer())
+    this.endpoint.write(Reply.errorReply(op.msgHeader, 10086, msg).toBuffer())
   }
 
 
-  inner class NetSocketWrapperFactory:Closeable {
-    private val serverSockets = ConcurrentHashMap<String,NetSocketWrapper>()
-    private val mgoNamespaceFactory :NamespaceFactory
+  inner class NetSocketWrapperFactory : Closeable {
+    private val serverSockets = ConcurrentHashMap<String, NetSocketWrapper>()
+    private val mgoNamespaceFactory: NamespaceFactory
 
     init {
       mgoNamespaceFactory = PandoraNamespaceFactory()
     }
 
-    fun createSocketWrapper(collectionName: String):Future<NetSocketWrapper> {
+    fun createSocketWrapper(collectionName: String): Future<NetSocketWrapper> {
       return AsyncPool.execute(Handler {
-        var f= it
+        var f = it
         var namespace = mgoNamespaceFactory.loadNamespace(collectionName)
         namespace?.onClusterChange { this.close() }
         val urls = namespace?.getAddressAsString()
@@ -161,26 +165,26 @@ class MgoTransport(val endpoint: DirectEndpoint,
           .filter { it.serverUrls.equals(urls) }
           .firstOrNull()
 
-        netSocketWrapper?.let{
+        netSocketWrapper?.let {
           serverSockets.putIfAbsent(collectionName, it)
           f.complete(it)
-        }?:let {
+        } ?: let {
           val serverAddress = findMaster(namespace.serveAddress())
-          val netSocketWrapper_tmp =  NetSocketWrapper(collectionName,namespace,
+          val netSocketWrapper_tmp = NetSocketWrapper(collectionName, namespace,
             serverAddress,
-            netClient,{this.onClose(it)},
+            netClient, { this.onClose(it) },
             if (BifrostConfig.monitorEnable()) listOf(EsMonitorListener()) else listOf()
           )
-          serverSockets.putIfAbsent(collectionName,netSocketWrapper_tmp)
+          serverSockets.putIfAbsent(collectionName, netSocketWrapper_tmp)
           netSocketWrapper_tmp
           f.complete(netSocketWrapper_tmp)
         }
       })
     }
 
-    fun getSocketWrapper(collectionName:String) : NetSocketWrapper? {
+    fun getSocketWrapper(collectionName: String): NetSocketWrapper? {
       val netSocketWrapper = serverSockets.get(collectionName)
-      if(null != netSocketWrapper && null == netSocketWrapper.socket()) {
+      if (null != netSocketWrapper && null == netSocketWrapper.socket()) {
         serverSockets.remove(collectionName)
       }
       return netSocketWrapper
@@ -190,31 +194,31 @@ class MgoTransport(val endpoint: DirectEndpoint,
      * doc https://docs.mongodb.com/manual/reference/replica-states/
      */
     private fun findMaster(serverAddress: List<ServerAddress>): ServerAddress {
-      serverAddress.forEach {
-        var mgoClient :MongoClient ?= null
-        try{
-          mgoClient = MongoClient(it,MongoClientOptions.builder().connectTimeout(10).build())
-          val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
-          val primary = runCommand.getString("primary")
-          val isMaster = runCommand.getBoolean("ismaster")
-          if(null != primary) {
-            val name = primary.split(":")
-            return@findMaster ServerAddress(name[0],Integer.valueOf(name[1]))
-          }else if(isMaster){
-            return@findMaster it
-          }else{
-            val msg = runCommand.getString("msg")
-            if(StringUtils.equals(msg,"isdbgrid")) {
-              val pos =  RandomUtils.nextInt(0,serverAddress.size)
-              return@findMaster serverAddress[pos]
-            }
-          }
-        }catch (throwable :Throwable) {
-          logger.warn("can't get primary from ${it},error msg:${throwable.message}",throwable)
-        }finally {
-          mgoClient?.let {
-            it.close()
-          }
+      var mgoClient: MongoClient? = null
+      try {
+        mgoClient = MongoClient(serverAddress, MongoClientOptions.builder()
+          .serverSelectionTimeout(1000 * 10)
+          .connectTimeout(1000 * 5)
+          .build()
+        )
+        val runCommand = mgoClient.getDatabase("admin").runCommand(Document("isMaster", 1))
+        val primary = runCommand.getString("primary")
+        val isMaster = runCommand.getBoolean("ismaster")
+        val msg = runCommand.getString("msg")
+        if (null != primary) {
+          val name = primary.split(":")
+          return@findMaster ServerAddress(name[0], Integer.valueOf(name[1]))
+        } else if (StringUtils.equals(msg, "isdbgrid")) {
+          val pos = RandomUtils.nextInt(0, serverAddress.size)
+          return@findMaster serverAddress[pos]
+        } else if (isMaster) {
+          return@findMaster serverAddress[0]
+        }
+      } catch (throwable: Throwable) {
+        logger.warn("can't get primary from ${serverAddress},error msg:${throwable.message}", throwable)
+      } finally {
+        mgoClient?.let {
+          it.close()
         }
       }
       throw MgoWrapperException("can't get primary from cluster ${serverAddress}")
@@ -223,41 +227,47 @@ class MgoTransport(val endpoint: DirectEndpoint,
     /**
      * NetSocketWrapper close 通知调用
      */
-    fun onClose(netSocketWrapper: NetSocketWrapper) :Unit{
-      if (netSocketWrapper != null) {
-        serverSockets.forEach { k, v ->
-          if (netSocketWrapper == v) {
-            serverSockets.remove(k)
+    fun onClose(netSocketWrapper: NetSocketWrapper): Unit {
+      try {
+        if (netSocketWrapper != null) {
+          val keys = serverSockets.entries.filter { it.value == netSocketWrapper }
+            .map { it.key }
+          keys.forEach {
+            serverSockets.remove(it)
           }
         }
+      } catch (e: Throwable) {
+        logger.error(e.message, e)
       }
+
     }
 
 
     override fun close() {
       logger.info("close  all mgo transport connection:${serverSockets.keys}")
       synchronized(this) {
-        serverSockets.forEach({it.value.close()})
+        serverSockets.forEach({ it.value.close() })
         serverSockets.clear()
       }
     }
   }
 
-  inner class NetSocketWrapper(val collectionName:String, namespace: Namespace, val serverAddress: ServerAddress, val netClient: NetClient,val closed:Callback<NetSocketWrapper>?=null,val transportListeners: List<TransportListener> = arrayListOf()):Closeable {
+  inner class NetSocketWrapper(val collectionName: String, namespace: Namespace, val serverAddress: ServerAddress, val netClient: NetClient, val closed: Callback<NetSocketWrapper>? = null, val transportListeners: List<TransportListener> = arrayListOf()) : Closeable {
 
     private var socket: NetSocket? = null
-    val serverUrls:String
-    var dataSourceStatus:NamespaceStatus
+    val serverUrls: String
+    var dataSourceStatus: NamespaceStatus
+
     init {
       serverUrls = namespace.getAddressAsString()
       dataSourceStatus = namespace.namespaceStatus()
-      namespace.onStatusChange { dataSourceStatus = it  }
+      namespace.onStatusChange { dataSourceStatus = it }
     }
 
-    fun connect(): Future<NetSocketWrapper>{
-      var cf = Future.future<NetSocketWrapper>()
-      netClient.connect(serverAddress.port,serverAddress.host, {
-        if(it.succeeded()) {
+    fun connect(): Future<NetSocketWrapper> {
+      var future = Future.future<NetSocketWrapper>()
+      netClient.connect(serverAddress.port, serverAddress.host, {
+        if (it.succeeded()) {
           val socket = it.result()
           socket.exceptionHandler { e ->
             run {
@@ -277,7 +287,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
               it.close()
             }
           }
-          socket.handler{
+          socket.handler {
             endpoint.write(it)
             transportListeners.forEach { listener ->
               run {
@@ -286,20 +296,20 @@ class MgoTransport(val endpoint: DirectEndpoint,
             }
           }
           this.socket = socket
-          cf.complete(this)
+          future.complete(this)
           if (logger.isDebugEnabled) {
             logger.debug("initialize socket wrapper success.")
           }
-        }else {
+        } else {
           var cause = it.cause()
-          logger.error("can't  connect nameSpace ${collectionName} cause:${cause.message}",cause)
-          cf.fail(cause)
+          logger.error("can't  connect nameSpace ${collectionName} cause:${cause.message}", cause)
+          future.fail(cause)
         }
       })
-      return  cf
+      return future
     }
 
-    fun write(opRequest: OpRequest,buffer:Buffer) {
+    fun write(opRequest: OpRequest, buffer: Buffer) {
 
       socket?.write(buffer) ?: throw MgoWrapperException("can't connect  mgo server for ${collectionName}.")
       transportListeners.forEach {
@@ -307,7 +317,7 @@ class MgoTransport(val endpoint: DirectEndpoint,
       }
     }
 
-    fun socket():NetSocket? = socket
+    fun socket(): NetSocket? = socket
 
     override fun close() {
       synchronized(this) {
@@ -326,7 +336,6 @@ class MgoTransport(val endpoint: DirectEndpoint,
     private val logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())
     private val ADMIN_DB = "admin"
     private val LOCAL_DB = "local"
-
     private val GET_LOG_CMD = "getLog"
     private val HOST_INFO = "hostInfo"
   }
